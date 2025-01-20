@@ -1,14 +1,15 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(["/apis(.*)"]);
+// if we want to protect apis routes def as below and import createRouteMatcher:
+// const isProtectedRoute = createRouteMatcher(["/apis(.*)"]);
 
-// export default clerkMiddleware();
-export default clerkMiddleware(async (auth, req) => {
-  // If this request matches /apis/... then require the user to be signed in
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
-});
+export default clerkMiddleware();
+// export default clerkMiddleware(async (auth, req) => {
+//   // If this request matches /apis/... then require the user to be signed in
+//   if (isProtectedRoute(req)) {
+//     await auth.protect();
+//   }
+// });
 
 export const config = {
   matcher: [
