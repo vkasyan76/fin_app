@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
+import { SearchInput } from "./search_input";
 
 export const Navbar = () => {
   return (
@@ -11,6 +12,7 @@ export const Navbar = () => {
         </Link>
         <h3 className="text-xl">Accounts</h3>
       </div>
+      <SearchInput />
       <div className="flex gap-3 items-center pl-6">
         <UserButton />
       </div>

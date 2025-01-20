@@ -3,11 +3,14 @@ import { v } from "convex/values";
 
 export default defineSchema({
   accounts: defineTable({
-    id: v.string(), // Primary key for the account
     plaidId: v.string(), // Plaid ID for the account
     name: v.string(), // Name of the account
     userId: v.string(), // User ID associated with the account
   })
     .index("by_user_id", ["userId"]) // Index for querying by userId
-    .index("by_plaid_id", ["plaidId"]), // Index for querying by plaidId
+    .index("by_plaid_id", ["plaidId"]) // Index for querying by plaidId
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["userId"],
+    }), // Search index for querying by name
 });
