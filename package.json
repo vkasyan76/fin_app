@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.9.11",
+    "@hono/zod-validator": "^0.4.2",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
@@ -44,6 +45,7 @@
     "convex": "^1.18.2",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.5.2",
+    "hono": "^4.6.17",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.471.1",
     "next": "15.1.4",
