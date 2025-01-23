@@ -3,7 +3,8 @@
 import { usePaginatedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 // import { CreateAccountDialog } from "../(dashboard)/create-account-dialog";
-import { CreateAccountSheet } from "../(dashboard)/create_account-sheet";
+// import { CreateAccountSheet } from "../(dashboard)/create_account-sheet";
+import { NewAccountSheet } from "../(dashboard)/new-account-sheet";
 
 export default function AccountsAPIPage() {
   const { results, status, loadMore } = usePaginatedQuery(
@@ -45,7 +46,8 @@ export default function AccountsAPIPage() {
       </div>
       <div className="max-w-screen-xl mx-auto px-16 my-8">
         {/* <CreateAccountDialog /> */}
-        <CreateAccountSheet />
+        {/* <CreateAccountSheet /> */}
+        <NewAccountSheet />
       </div>
     </div>
   );
