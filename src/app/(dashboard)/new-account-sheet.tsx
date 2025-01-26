@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -11,25 +12,31 @@ import {
 import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
 
-export const NewAccountSheet = () => {
-  const [open, setOpen] = useState(false);
+type FormValues = {
+  name: string;
+};
 
-  const handleSuccess = () => {
-    setOpen(false); // Close the sheet on successful form submission
+export const NewAccountSheet = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onSubmit = (values: FormValues) => {
+    console.log("Form submitted:", values);
+    setIsOpen(false);
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button>Create Account</Button>
+        <Button variant="outline">Create Account</Button>
       </SheetTrigger>
-      <SheetContent side="right">
+      <SheetContent side="right" className="space-y-4">
         <SheetHeader>
-          <SheetTitle>Create Account</SheetTitle>
+          <SheetTitle>New Account</SheetTitle>
+          <SheetDescription>
+            Create a new account to track your transactions.
+          </SheetDescription>
         </SheetHeader>
-        <div className="mt-6">
-          <AccountForm onSubmitSuccess={handleSuccess} />
-        </div>
+        <AccountForm onSubmit={onSubmit} />
       </SheetContent>
     </Sheet>
   );

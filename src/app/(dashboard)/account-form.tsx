@@ -1,75 +1,114 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { Trash } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
-interface AccountFormProps {
-  initialName?: string;
-  onSubmitSuccess?: () => void;
-}
-
-interface FormData {
+type FormValues = {
   name: string;
-}
+};
+
+type Props = {
+  id?: string;
+  defaultValues?: FormValues;
+  onSubmit: (values: FormValues) => void;
+  onDelete?: () => void;
+  disabled?: boolean;
+};
 
 export const AccountForm = ({
-  initialName = "",
-  onSubmitSuccess,
-}: AccountFormProps) => {
-  const { handleSubmit, control, formState } = useForm<FormData>({
-    defaultValues: { name: initialName },
+  id,
+  defaultValues,
+  onSubmit,
+  onDelete,
+  disabled = false,
+}: Props) => {
+  const form = useForm<FormValues>({
+    defaultValues: {
+      name: defaultValues?.name || "",
+    },
   });
 
   const createAccount = useMutation(api.accounts.create);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
 
-  const onSubmit = async (data: FormData) => {
-    if (!data.name.trim()) {
-      toast.error("Account name is required!");
-      return;
-    }
-
+  const handleSubmit = async (values: FormValues) => {
+    if (disabled || isSubmitting) return; // Prevent duplicate submissions
+    setIsSubmitting(true);
     try {
-      await createAccount({ name: data.name.trim(), plaidId: "" });
+      // Call the mutation to create an account
+      await createAccount({
+        name: values.name.trim(),
+        plaidId: "", // Optional, as Plaid ID is not required
+      });
       toast.success("Account created successfully!");
-      if (onSubmitSuccess) onSubmitSuccess();
+      onSubmit(values); // Trigger the passed onSubmit handler
     } catch (error) {
-      console.error("Error saving account:", error);
-      toast.error("Failed to save account.");
+      console.error("Error creating account:", error);
+      toast.error("Failed to create account.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleDelete = () => {
+    onDelete?.();
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div>
-        <Label htmlFor="name" className="block text-sm font-medium">
-          Account Name
-        </Label>
-        <Controller
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 pt-4"
+      >
+        <FormField
           name="name"
-          control={control}
+          control={form.control}
           render={({ field }) => (
-            <Input
-              {...field}
-              id="name"
-              placeholder="Enter account name"
-              className="mt-2"
-            />
+            <FormItem>
+              <FormLabel>Account Name</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  disabled={disabled || isSubmitting}
+                  placeholder="e.g., Cash, Bank, Credit Card"
+                />
+              </FormControl>
+            </FormItem>
           )}
         />
-        {formState.errors.name && (
-          <p className="text-red-500 text-sm mt-1">
-            {formState.errors.name.message}
-          </p>
+        <Button
+          className="w-full"
+          disabled={disabled || isSubmitting}
+          type="submit"
+        >
+          {id ? "Save changes" : "Create account"}
+        </Button>
+        {!!id && (
+          <Button
+            type="button"
+            disabled={disabled || isSubmitting}
+            onClick={handleDelete}
+            className="w-full"
+            variant="outline"
+          >
+            <Trash className="size-4 mr-2" />
+            Delete account
+          </Button>
         )}
-      </div>
-      <div className="flex justify-end space-x-4">
-        <Button type="submit">Save</Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 };
