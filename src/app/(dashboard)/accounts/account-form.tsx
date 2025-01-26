@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -78,7 +78,7 @@ export const AccountForm = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Account Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input
                   {...field}

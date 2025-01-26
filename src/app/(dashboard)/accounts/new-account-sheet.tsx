@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
+import { Plus } from "lucide-react";
 
 type FormValues = {
   name: string;
@@ -27,7 +28,10 @@ export const NewAccountSheet = () => {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline">Create Account</Button>
+        <Button size="sm">
+          <Plus className="size-4 mr-1" />
+          Add New
+        </Button>
       </SheetTrigger>
       <SheetContent side="right" className="space-y-4">
         <SheetHeader>
