@@ -47,6 +47,8 @@ export default function AccountsPage() {
             onDelete={() => {
               console.log("Add delete functionality here");
             }}
+            onNextPage={handleNextPage}
+            hasMore={canLoadMore}
             disabled={!results || results?.length === 0}
           />
         </CardContent>

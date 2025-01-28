@@ -35,6 +35,8 @@ interface DataTableProps<TData, TValue> {
   filterKey: string;
   onDelete?: (row: Row<TData>[]) => void;
   disabled?: boolean;
+  onNextPage?: () => void; // Add onNextPage prop
+  hasMore?: boolean; // Add hasMore prop
 }
 
 export function DataTable<TData, TValue>({
@@ -43,6 +45,8 @@ export function DataTable<TData, TValue>({
   filterKey,
   onDelete,
   disabled,
+  onNextPage,
+  hasMore,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -149,21 +153,23 @@ export function DataTable<TData, TValue>({
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
 
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
-        </Button>
+        </Button> */}
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+          // onClick={() => table.nextPage()}
+          // disabled={!table.getCanNextPage()}
+          onClick={onNextPage}
+          disabled={!hasMore}
         >
-          Next
+          Load More
         </Button>
       </div>
     </div>
