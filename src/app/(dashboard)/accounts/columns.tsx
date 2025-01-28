@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { format } from "date-fns";
 
 export type Account = {
   id: string;
   name: string;
+  _creationTime: number;
 };
 
 export const columns: ColumnDef<Account>[] = [
@@ -48,6 +50,26 @@ export const columns: ColumnDef<Account>[] = [
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
+    },
+  },
+
+  {
+    accessorKey: "_creationTime",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Created Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("_creationTime"));
+      // return date.toLocaleDateString();
+      return format(new Date(date), "MMM dd, yyyy"); // Format date using date-fns
     },
   },
 ];
