@@ -76,9 +76,6 @@ export default function AccountsPage() {
             columns={columns}
             data={mappedResults || []}
             onDelete={handleDelete}
-            // onDelete={() => {
-            //   console.log("Add delete functionality here");
-            // }}
             onNextPage={handleNextPage}
             hasMore={canLoadMore}
             disabled={!results || results?.length === 0}
