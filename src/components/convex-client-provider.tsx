@@ -17,8 +17,6 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      // Set the redirect URL after sign-out
-      // afterSignOutUrl="/"
     >
       <ConvexProviderWithClerk useAuth={useAuth} client={convex}>
         <Authenticated> {children}</Authenticated>
@@ -30,8 +28,7 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
           </div>
         </Unauthenticated>
         <AuthLoading>
-          {/* <p>Loading auth...</p> */}
-          <FullscreenLoader label="Auth loading..." />
+          <FullscreenLoader label="Loading..." />
         </AuthLoading>
       </ConvexProviderWithClerk>
     </ClerkProvider>

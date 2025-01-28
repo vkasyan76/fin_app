@@ -1,5 +1,6 @@
 "use client";
 
+import { Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
@@ -7,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 
 export type Account = {
-  id: string;
+  id: Id<"accounts">;
   name: string;
   _creationTime: number;
 };

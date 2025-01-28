@@ -51,3 +51,37 @@ export const create = mutation({
     });
   },
 });
+
+export const remove = mutation({
+  args: {
+    ids: v.array(v.id("accounts")), // Accept an array of account IDs to delete
+  },
+  handler: async (ctx, { ids }) => {
+    const user = await ctx.auth.getUserIdentity();
+
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Validate that the accounts belong to the current user
+    const accounts = await Promise.all(
+      ids.map(async (id) => {
+        const account = await ctx.db.get(id);
+        if (!account) {
+          throw new ConvexError(`Account with ID ${id} not found`);
+        }
+        if (account.userId !== user.subject) {
+          throw new ConvexError("Unauthorized");
+        }
+        return account;
+      })
+    );
+
+    // Delete all validated accounts
+    const deletedCount = await Promise.all(
+      accounts.map((account) => ctx.db.delete(account._id))
+    );
+
+    return { deletedCount: deletedCount.length };
+  },
+});

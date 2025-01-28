@@ -13,17 +13,21 @@ import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
 import { Plus } from "lucide-react";
 
-type FormValues = {
-  name: string;
-};
+// type FormValues = {
+//   name: string;
+// };
 
 export const NewAccountSheet = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const onSubmit = (values: FormValues) => {
-    console.log("Form submitted:", values);
+  const onSubmit = () => {
     setIsOpen(false);
   };
+
+  // const onSubmit = (values: FormValues) => {
+  //   console.log("Form submitted:", values);
+  //   setIsOpen(false);
+  // };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>

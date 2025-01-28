@@ -1,13 +1,15 @@
 "use client";
 
-import { usePaginatedQuery } from "convex/react";
+import { usePaginatedQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
 import { NewAccountSheet } from "./new-account-sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { columns } from "./columns";
+import { columns, Account } from "./columns";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
+import { Row } from "@tanstack/react-table";
 
 export default function AccountsPage() {
   const { results, status, loadMore } = usePaginatedQuery(
@@ -16,8 +18,11 @@ export default function AccountsPage() {
     { initialNumItems: 5 }
   );
 
+  const deleteAccounts = useMutation(api.accounts.remove);
+
   const mappedResults = results?.map((account) => ({
-    id: account._id, // Map `_id` to `id`
+    id: account._id as Id<"accounts">, // Explicitly cast `_id` to `Id<"accounts">`  // Map `_id` to `id`
+    // id: account._id,
     name: account.name, // Keep the `name` field
     _creationTime: account._creationTime, // Map creation time
   }));
@@ -30,6 +35,11 @@ export default function AccountsPage() {
     if (canLoadMore) {
       loadMore(5); // Load 5 more items
     }
+  };
+
+  const handleDelete = async (rows: Row<Account>[]) => {
+    const ids = rows.map((row) => row.original.id); // Correctly access the `id`
+    await deleteAccounts({ ids }); // Call the Convex mutation
   };
 
   if (isLoading) {
@@ -65,9 +75,10 @@ export default function AccountsPage() {
             filterKey="name"
             columns={columns}
             data={mappedResults || []}
-            onDelete={() => {
-              console.log("Add delete functionality here");
-            }}
+            onDelete={handleDelete}
+            // onDelete={() => {
+            //   console.log("Add delete functionality here");
+            // }}
             onNextPage={handleNextPage}
             hasMore={canLoadMore}
             disabled={!results || results?.length === 0}
