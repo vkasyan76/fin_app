@@ -65,10 +65,6 @@ export default function AccountsPage() {
         <CardHeader className="gap-y-2 lg:flex-row lg:items-center lg:justify-between">
           <CardTitle className="text-xl line-clamp-1">Accounts page</CardTitle>
           <NewAccountSheet />
-          {/* <Button size="sm">
-            <Plus className="size-4 mr-1" />
-            Add new
-          </Button> */}
         </CardHeader>
         <CardContent>
           <DataTable

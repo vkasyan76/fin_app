@@ -32,6 +32,35 @@ export const get = query({
   },
 });
 
+export const getById = query({
+  args: {
+    id: v.optional(v.id("accounts")),
+  },
+  handler: async (ctx, { id }) => {
+    const user = await ctx.auth.getUserIdentity();
+
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    if (!id) {
+      throw new ConvexError("Missing ID");
+    }
+
+    const account = await ctx.db.get(id);
+
+    if (!account) {
+      throw new ConvexError(`Account with ID ${id} not found`);
+    }
+
+    if (account.userId !== user.subject) {
+      throw new ConvexError("Unauthorized access");
+    }
+
+    return account;
+  },
+});
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -83,5 +112,36 @@ export const remove = mutation({
     );
 
     return { deletedCount: deletedCount.length };
+  },
+});
+
+export const update = mutation({
+  args: {
+    id: v.id("accounts"), // The ID of the account to update
+    name: v.string(), // The new name for the account
+  },
+  handler: async (ctx, { id, name }) => {
+    const user = await ctx.auth.getUserIdentity();
+
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    const account = await ctx.db.get(id);
+
+    if (!account) {
+      throw new ConvexError(`Account with ID ${id} not found`);
+    }
+
+    if (account.userId !== user.subject) {
+      throw new ConvexError("Unauthorized access");
+    }
+
+    // Update the account name
+    await ctx.db.patch(id, {
+      name,
+    });
+
+    return { success: true };
   },
 });

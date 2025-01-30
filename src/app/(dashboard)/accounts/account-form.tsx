@@ -15,13 +15,14 @@ import { api } from "../../../../convex/_generated/api";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Id } from "../../../../convex/_generated/dataModel";
 
 type FormValues = {
   name: string;
 };
 
 type Props = {
-  id?: string;
+  id?: Id<"accounts">;
   defaultValues?: FormValues;
   onSubmit: (values: FormValues) => void;
   onDelete?: () => void;
@@ -42,18 +43,29 @@ export const AccountForm = ({
   });
 
   const createAccount = useMutation(api.accounts.create);
+  const updateAccount = useMutation(api.accounts.update);
+  const removeAccounts = useMutation(api.accounts.remove);
+
   const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
 
   const handleSubmit = async (values: FormValues) => {
     if (disabled || isSubmitting) return; // Prevent duplicate submissions
     setIsSubmitting(true);
     try {
-      // Call the mutation to create an account
-      await createAccount({
-        name: values.name.trim(),
-        plaidId: "", // Optional, as Plaid ID is not required
-      });
-      toast.success("Account created successfully!");
+      if (id) {
+        await updateAccount({
+          id, // must be a valid convex ID
+          name: values.name.trim(),
+        });
+        toast.success("Account updated successfully!");
+      } else {
+        // Otherwise, create a new account
+        await createAccount({
+          name: values.name.trim(),
+          plaidId: "",
+        });
+        toast.success("Account created successfully!");
+      }
       onSubmit(values); // Trigger the passed onSubmit handler
     } catch (error) {
       console.error("Error creating account:", error);
@@ -63,8 +75,16 @@ export const AccountForm = ({
     }
   };
 
-  const handleDelete = () => {
-    onDelete?.();
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await removeAccounts({ ids: [id] }); // Pass a single account ID in an array
+      toast.success("Account deleted successfully!");
+      onDelete?.(); // e.g., close the sheet, refresh the list, etc.
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Failed to delete account.");
+    }
   };
 
   return (

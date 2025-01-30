@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
+import { Actions } from "./actions";
 
 export type Account = {
   id: Id<"accounts">;
@@ -72,5 +73,9 @@ export const columns: ColumnDef<Account>[] = [
       // return date.toLocaleDateString();
       return format(new Date(date), "MMM dd, yyyy"); // Format date using date-fns
     },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <Actions id={row.original.id} />, // Pass the `id` to Actions component
   },
 ];
