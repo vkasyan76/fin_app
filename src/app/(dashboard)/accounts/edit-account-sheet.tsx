@@ -42,7 +42,12 @@ export const EditAccountSheet = ({ id, isOpen, onClose }: Props) => {
           <SheetTitle>Edit Account</SheetTitle>
           <SheetDescription>Edit the account details below.</SheetDescription>
         </SheetHeader>
-        <AccountForm onSubmit={onClose} defaultValues={defaultValues} id={id} />
+        <AccountForm
+          onSubmit={onClose}
+          defaultValues={defaultValues}
+          id={id}
+          onClose={onClose} // Pass onClose to AccountForm
+        />
       </SheetContent>
     </Sheet>
   );

@@ -25,16 +25,16 @@ type Props = {
   id?: Id<"accounts">;
   defaultValues?: FormValues;
   onSubmit: (values: FormValues) => void;
-  onDelete?: () => void;
   disabled?: boolean;
+  onClose?: () => void; // Add `onClose` for Delete
 };
 
 export const AccountForm = ({
   id,
   defaultValues,
   onSubmit,
-  onDelete,
   disabled = false,
+  onClose,
 }: Props) => {
   const form = useForm<FormValues>({
     defaultValues: {
@@ -80,7 +80,7 @@ export const AccountForm = ({
     try {
       await removeAccounts({ ids: [id] }); // Pass a single account ID in an array
       toast.success("Account deleted successfully!");
-      onDelete?.(); // e.g., close the sheet, refresh the list, etc.
+      onClose?.(); // Explicitly close the sheet after deletion
     } catch (error) {
       console.error("Error deleting account:", error);
       toast.error("Failed to delete account.");
