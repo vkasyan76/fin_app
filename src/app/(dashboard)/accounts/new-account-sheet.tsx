@@ -18,16 +18,12 @@ import { Plus } from "lucide-react";
 // };
 
 export const NewAccountSheet = () => {
+  // Use local state for NewAccountSheet (isOpen, setIsOpen) because it is a self-contained
   const [isOpen, setIsOpen] = useState(false);
 
   const onSubmit = () => {
     setIsOpen(false);
   };
-
-  // const onSubmit = (values: FormValues) => {
-  //   console.log("Form submitted:", values);
-  //   setIsOpen(false);
-  // };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
