@@ -11,8 +11,10 @@ import {
 // import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import { useConfirm } from "@/hooks/use-confirm";
+import { toast } from "sonner";
 
 type Props = {
   id: Id<"accounts">;
@@ -25,7 +27,12 @@ export const EditAccountSheet = ({ id, isOpen, onClose }: Props) => {
     name: "",
   });
   const accountQuery = useQuery(api.accounts.getById, { id });
-  // const updateAccount = useMutation(api.accounts.update);
+  const removeAccounts = useMutation(api.accounts.remove);
+
+  const [ConfirmDialog, confirm] = useConfirm(
+    "Are you sure?",
+    "You are about to delete this account."
+  );
 
   useEffect(() => {
     if (accountQuery) {
@@ -33,22 +40,40 @@ export const EditAccountSheet = ({ id, isOpen, onClose }: Props) => {
     }
   }, [accountQuery]);
 
+  const handleDelete = async () => {
+    const confirmed = await confirm();
+    if (!confirmed) return;
+
+    try {
+      await removeAccounts({ ids: [id] });
+      toast.success("Account deleted successfully!");
+      onClose(); // Close the sheet after deletion
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Failed to delete account.");
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="space-y-4">
-        <SheetHeader>
-          <SheetTitle>Edit Account</SheetTitle>
-          <SheetDescription>Edit the account details below.</SheetDescription>
-        </SheetHeader>
-        <AccountForm
-          onSubmit={onClose}
-          defaultValues={defaultValues}
-          id={id}
-          onClose={onClose} // Pass onClose to AccountForm
-        />
-      </SheetContent>
-    </Sheet>
+    <>
+      <ConfirmDialog />
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent side="right" className="space-y-4">
+          <SheetHeader>
+            <SheetTitle>Edit Account</SheetTitle>
+            <SheetDescription>Edit the account details below.</SheetDescription>
+          </SheetHeader>
+          <AccountForm
+            onSubmit={onClose}
+            defaultValues={defaultValues}
+            id={id}
+            // onClose={onClose} // Pass onClose to AccountForm
+            onDelete={handleDelete} // Pass handleDelete
+          />
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };

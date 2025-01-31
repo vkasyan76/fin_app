@@ -26,7 +26,7 @@ type Props = {
   defaultValues?: FormValues;
   onSubmit: (values: FormValues) => void;
   disabled?: boolean;
-  onClose?: () => void; // Add `onClose` for Delete
+  onDelete?: () => void; // Pass delete callback
 };
 
 export const AccountForm = ({
@@ -34,7 +34,7 @@ export const AccountForm = ({
   defaultValues,
   onSubmit,
   disabled = false,
-  onClose,
+  onDelete,
 }: Props) => {
   const form = useForm<FormValues>({
     defaultValues: {
@@ -44,7 +44,7 @@ export const AccountForm = ({
 
   const createAccount = useMutation(api.accounts.create);
   const updateAccount = useMutation(api.accounts.update);
-  const removeAccounts = useMutation(api.accounts.remove);
+  // const removeAccounts = useMutation(api.accounts.remove);
 
   const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
 
@@ -72,18 +72,6 @@ export const AccountForm = ({
       toast.error("Failed to create account.");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!id) return;
-    try {
-      await removeAccounts({ ids: [id] }); // Pass a single account ID in an array
-      toast.success("Account deleted successfully!");
-      onClose?.(); // Explicitly close the sheet after deletion
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      toast.error("Failed to delete account.");
     }
   };
 
@@ -120,7 +108,7 @@ export const AccountForm = ({
           <Button
             type="button"
             disabled={disabled || isSubmitting}
-            onClick={handleDelete}
+            onClick={onDelete}
             className="w-full"
             variant="outline"
           >
