@@ -35,7 +35,15 @@ export const useConfirm = (
   };
 
   const ConfirmDialog = () => (
-    <Dialog open={promise != null}>
+    <Dialog
+      open={promise != null}
+      onOpenChange={(open) => {
+        // If the dialog is being closed (e.g. via the "X" button), treat it as a cancellation.
+        if (!open) {
+          handleCancel();
+        }
+      }}
+    >
       <DialogContent className="p-4 bg-white overflow-hidden">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
