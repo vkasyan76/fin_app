@@ -34,6 +34,9 @@ export const EditAccountSheet = ({ id, isOpen, onClose }: Props) => {
     "You are about to delete this account."
   );
 
+  // New state for delete operation
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     if (accountQuery) {
       setDefaultValues({ name: accountQuery.name });
@@ -41,8 +44,13 @@ export const EditAccountSheet = ({ id, isOpen, onClose }: Props) => {
   }, [accountQuery]);
 
   const handleDelete = async () => {
+    // If already deleting, return early.
+    if (isDeleting) return;
+
     const confirmed = await confirm();
     if (!confirmed) return;
+
+    setIsDeleting(true);
 
     try {
       await removeAccounts({ ids: [id] });
@@ -51,6 +59,8 @@ export const EditAccountSheet = ({ id, isOpen, onClose }: Props) => {
     } catch (error) {
       console.error("Error deleting account:", error);
       toast.error("Failed to delete account.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 

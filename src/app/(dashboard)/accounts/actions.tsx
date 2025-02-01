@@ -24,6 +24,9 @@ export const Actions = ({ id }: Props) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const deleteMutation = useMutation(api.accounts.remove);
 
+  // pending status for disableing the buton
+  const [isDeletePending, setIsDeletePending] = useState(false);
+
   const [ConfirmDialog, confirm] = useConfirm(
     "Are you sure?",
     "You are about to delete this account."
@@ -40,12 +43,15 @@ export const Actions = ({ id }: Props) => {
   const handleDelete = async () => {
     const confirmed = await confirm();
     if (confirmed) {
+      setIsDeletePending(true);
       try {
         await deleteMutation({ ids: [id] });
         toast.success("Account deleted successfully!");
       } catch (error) {
         console.error("Error deleting account:", error);
         toast.error("Failed to delete account.");
+      } finally {
+        setIsDeletePending(false);
       }
     }
   };
@@ -60,11 +66,11 @@ export const Actions = ({ id }: Props) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleEdit}>
+          <DropdownMenuItem onClick={handleEdit} disabled={isDeletePending}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete}>
+          <DropdownMenuItem onClick={handleDelete} disabled={isDeletePending}>
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
