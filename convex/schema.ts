@@ -13,4 +13,14 @@ export default defineSchema({
       searchField: "name",
       filterFields: ["userId"],
     }), // Search index for querying by name
+
+  categories: defineTable({
+    name: v.string(), // Name of the category
+    userId: v.string(), // User ID associated with the category
+  })
+    .index("by_user_id", ["userId"]) // Query categories by user
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["userId"],
+    }),
 });
