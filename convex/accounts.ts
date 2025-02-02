@@ -106,6 +106,18 @@ export const remove = mutation({
       })
     );
 
+    // Delete related transactions for each account
+    for (const account of accounts) {
+      const transactions = await ctx.db
+        .query("transactions")
+        .withIndex("by_account_id", (q) => q.eq("accountId", account._id))
+        .collect();
+
+      for (const transaction of transactions) {
+        await ctx.db.delete(transaction._id);
+      }
+    }
+
     // Delete all validated accounts
     const deletedCount = await Promise.all(
       accounts.map((account) => ctx.db.delete(account._id))

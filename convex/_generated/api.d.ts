@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as accounts from "../accounts.js";
 import type * as categories from "../categories.js";
+import type * as transactions from "../transactions.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,6 +28,7 @@ import type * as categories from "../categories.js";
 declare const fullApi: ApiFromModules<{
   accounts: typeof accounts;
   categories: typeof categories;
+  transactions: typeof transactions;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -23,4 +23,20 @@ export default defineSchema({
       searchField: "name",
       filterFields: ["userId"],
     }),
+
+  transactions: defineTable({
+    accountId: v.id("accounts"), // Foreign key to accounts table
+    categoryId: v.optional(v.id("categories")), // Foreign key to categories table, nullable
+    userId: v.string(), // User ID associated with the transaction
+    amount: v.float64(), // Transaction amount (stored as an integer, e.g., cents)
+    payee: v.string(), // Name of the payee
+    notes: v.optional(v.string()), // Additional notes for the transaction
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_account_id", ["accountId"])
+    .index("by_category_id", ["categoryId"])
+    .searchIndex("search_payee", {
+      searchField: "payee",
+      filterFields: ["userId"],
+    }),
 });
