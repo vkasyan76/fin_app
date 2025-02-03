@@ -3,6 +3,7 @@ import { Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { subDays } from "date-fns";
 import { paginationOptsValidator } from "convex/server";
+import { mutation } from "./_generated/server";
 
 // Define our document types with proper Convex IDs.
 type Transaction = {
@@ -149,6 +150,150 @@ export const getTransactions = query({
       continueCursor: result.continueCursor,
       isDone: result.isDone,
     };
+  },
+});
+
+export const getById = query({
+  // 1. Define the expected argument (a valid transaction ID)
+  args: { id: v.id("transactions") },
+  handler: async (ctx, { id }) => {
+    // 2. Ensure the user is authenticated
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new ConvexError("Unauthorized");
+
+    // 3. Retrieve the transaction document by id
+    // check transaction exists and aligns with the authenticated user’s details
+    const tx = await ctx.db.get(id);
+    if (!tx || tx.userId !== user.subject) {
+      throw new ConvexError("Not found");
+    }
+
+    // 4. Fetch related account and category documents
+    const account = await ctx.db.get(tx.accountId);
+    const category = tx.categoryId ? await ctx.db.get(tx.categoryId) : null;
+
+    // 5. Build and return the joined output
+    return {
+      id: tx._id,
+      date: tx._creationTime, // expose the creation time as "date"
+      payee: tx.payee,
+      amount: tx.amount,
+      notes: tx.notes,
+      account: account ? account.name : null,
+      accountId: tx.accountId,
+      category: category ? category.name : null,
+      categoryId: tx.categoryId,
+    };
+  },
+});
+
+export const create = mutation({
+  // Define the arguments the user must supply. Notice that we omit an id field.
+  args: {
+    accountId: v.id("accounts"),
+    categoryId: v.optional(v.id("categories")),
+    amount: v.float64(),
+    payee: v.string(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Retrieve the authenticated user.
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Insert a new transaction into the "transactions" table.
+    // The user-supplied values come from args, while userId is taken from auth.
+    return await ctx.db.insert("transactions", {
+      accountId: args.accountId,
+      categoryId: args.categoryId,
+      amount: args.amount,
+      payee: args.payee,
+      notes: args.notes,
+      userId: user.subject,
+    });
+  },
+});
+
+export const remove = mutation({
+  args: {
+    // Accept an array of transaction IDs to delete.
+    ids: v.array(v.id("transactions")),
+  },
+  handler: async (ctx, { ids }) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Validate that each transaction exists and belongs to the current user.
+    await Promise.all(
+      ids.map(async (id) => {
+        const tx = await ctx.db.get(id);
+        if (!tx) {
+          throw new ConvexError(`Transaction with ID ${id} not found`);
+        }
+        if (tx.userId !== user.subject) {
+          throw new ConvexError("Unauthorized");
+        }
+      })
+    );
+
+    // Delete each transaction and return its ID.
+    const deletedIds = await Promise.all(
+      ids.map(async (id) => {
+        await ctx.db.delete(id);
+        return id;
+      })
+    );
+
+    return deletedIds;
+  },
+});
+
+export const update = mutation({
+  args: {
+    // The ID of the transaction to update.
+    id: v.id("transactions"),
+    // Fields to update; adjust these as needed based on your schema.
+    accountId: v.id("accounts"),
+    categoryId: v.optional(v.id("categories")),
+    amount: v.float64(),
+    payee: v.string(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // 1. Ensure the user is authenticated.
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // 2. Fetch the transaction.
+    const tx = await ctx.db.get(args.id);
+    if (!tx) {
+      throw new ConvexError(`Transaction with ID ${args.id} not found`);
+    }
+
+    // 3. Verify that the transaction belongs to the authenticated user.
+    if (tx.userId !== user.subject) {
+      throw new ConvexError("Unauthorized access");
+    }
+
+    // 4. Update the transaction with the provided fields.
+    const updateData = {
+      accountId: args.accountId,
+      categoryId: args.categoryId,
+      amount: args.amount,
+      payee: args.payee,
+      notes: args.notes,
+    };
+
+    await ctx.db.patch(args.id, updateData);
+
+    // Optionally, you could fetch and return the updated transaction.
+    return { success: true };
   },
 });
 
