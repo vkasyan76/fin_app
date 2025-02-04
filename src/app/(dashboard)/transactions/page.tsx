@@ -6,7 +6,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { NewTransactionSheet } from "./new-transaction-sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { columns, Transaction } from "./columns";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "./data-table-transactions";
 import { Loader2 } from "lucide-react";
 import { Row } from "@tanstack/react-table";
 
@@ -30,10 +30,6 @@ export default function TransactionsPage() {
     notes: tx.notes,
     _creationTime: tx._creationTime,
   }));
-
-  // Since our query returns all results, we use a no‑op for load more.
-  const handleNextPage = () => {};
-  const canLoadMore = false;
 
   const handleDelete = async (rows: Row<Transaction>[]) => {
     const ids = rows.map((row) => row.original.id);
@@ -72,8 +68,6 @@ export default function TransactionsPage() {
             columns={columns}
             data={mappedResults || []}
             onDelete={handleDelete}
-            onNextPage={handleNextPage}
-            hasMore={canLoadMore}
             disabled={!transactions || transactions.length === 0}
           />
         </CardContent>
