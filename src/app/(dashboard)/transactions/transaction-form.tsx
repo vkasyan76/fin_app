@@ -18,6 +18,7 @@ import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/date-picker";
 import { Select } from "@/components/select";
+import { AmountInput } from "@/components/amount-input";
 
 import { Id } from "../../../../convex/_generated/dataModel";
 import Loader from "@/components/loader";
@@ -30,15 +31,6 @@ type FormValues = {
   notes?: string;
   date?: Date;
 };
-
-// type ApiFormValues = {
-//   accountId: Id<"accounts">;
-//   categoryId: Id<"categories">;
-//   payee: string;
-//   amount: number;
-//   notes?: string;
-//   date: string;
-// };
 
 type Props = {
   id?: Id<"transactions">;
@@ -219,6 +211,24 @@ export const TransactionForm = ({
         />
 
         <FormField
+          name="amount"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount</FormLabel>
+              <FormControl>
+                <AmountInput
+                  {...field}
+                  // type="number"
+                  disabled={disabled || isSubmitting}
+                  placeholder="0.00"
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
           name="payee"
           control={form.control}
           render={({ field }) => (
@@ -229,23 +239,6 @@ export const TransactionForm = ({
                   {...field}
                   disabled={disabled || isSubmitting}
                   placeholder="Add a payee"
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          name="amount"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="number"
-                  disabled={disabled || isSubmitting}
-                  placeholder="e.g., 15.99"
                 />
               </FormControl>
             </FormItem>

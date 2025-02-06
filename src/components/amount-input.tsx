@@ -10,25 +10,31 @@ import {
 } from "@/components/ui/tooltip";
 
 type Props = {
-  value: string;
+  value: string | number; // Allow both string and number
+  // value: string;
   onChange: (value: string | undefined) => void;
   placeholder?: string;
   disabled?: boolean;
 };
 
+// adjust the component to work with both string and number values:
 export const AmountInput = ({
   value,
   onChange,
   placeholder,
   disabled,
 }: Props) => {
-  const parsedValue = parseFloat(value);
+  // Ensure `value` is always treated as a string for the input field
+  const stringValue = typeof value === "number" ? value.toFixed(2) : value;
+  const parsedValue = parseFloat(stringValue || "0");
+  // const parsedValue = parseFloat(value);
   const isIncome = parsedValue > 0;
   const isExpense = parsedValue < 0;
 
   const onReverseValue = () => {
     if (!value) return;
-    const newValue = parseFloat(value) * -1;
+    // const newValue = parseFloat(value) * -1;
+    const newValue = parsedValue * -1;
     onChange(newValue.toString());
   };
 
@@ -41,7 +47,9 @@ export const AmountInput = ({
               type="button"
               onClick={onReverseValue}
               className={cn(
-                "bg-slate-400 hover:bg-slate-500 absolute top-1.5 left-1 rounded-md p-2 flex items-center justify-center transition"
+                "bg-slate-400 hover:bg-slate-500 absolute top-1.5 left-1 rounded-md p-2 flex items-center justify-center transition",
+                isIncome && "bg-emerald-500 hover:bg-emerald-600",
+                isExpense && "bg-rose-500 hover:bg-rose-600"
               )}
             >
               {parsedValue === 0 && <Info className="size-3 text-white" />}
@@ -56,6 +64,7 @@ export const AmountInput = ({
       </TooltipProvider>
       <CurrencyInput
         //   this class matches input component, but has pl-10
+        prefix="$"
         className="pl-10 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         placeholder={placeholder}
         value={value}
