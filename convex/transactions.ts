@@ -15,6 +15,7 @@ type Transaction = {
   accountId: Id<"accounts">;
   amount: number;
   payee: string;
+  date: number;
 };
 
 type JoinedTransaction = {
@@ -23,6 +24,7 @@ type JoinedTransaction = {
   amount: number;
   notes?: string;
   _creationTime: number;
+  date: number;
   accountId: Id<"accounts">;
   account: string | null;
   categoryId?: Id<"categories">;
@@ -54,8 +56,8 @@ export const get = query({
       .filter((q) =>
         q.and(
           q.eq(q.field("userId"), user.subject),
-          q.gte(q.field("_creationTime"), startDate),
-          q.lte(q.field("_creationTime"), endDate)
+          q.gte(q.field("date"), startDate),
+          q.lte(q.field("date"), endDate)
         )
       );
 
@@ -125,6 +127,7 @@ export const get = query({
       amount: tx.amount,
       notes: tx.notes,
       _creationTime: tx._creationTime,
+      date: tx.date,
       accountId: tx.accountId,
       account: accountsMap.get(tx.accountId)?.name ?? null,
       categoryId: tx.categoryId,
@@ -134,7 +137,7 @@ export const get = query({
     }));
 
     // Sort the joined transactions by creation time (descending).
-    joinedTransactions.sort((a, b) => b._creationTime - a._creationTime);
+    joinedTransactions.sort((a, b) => b.date - a.date);
 
     // Return the joined transactions (no pagination info needed).
     return joinedTransactions;
@@ -163,7 +166,7 @@ export const getById = query({
     // 5. Build and return the joined output
     return {
       id: tx._id,
-      date: tx._creationTime, // expose the creation time as "date"
+      date: tx.date, // expose the creation time as "date"
       payee: tx.payee,
       amount: tx.amount,
       notes: tx.notes,
@@ -183,6 +186,7 @@ export const create = mutation({
     amount: v.float64(),
     payee: v.string(),
     notes: v.optional(v.string()),
+    date: v.number(),
   },
   handler: async (ctx, args) => {
     // Retrieve the authenticated user.
@@ -199,6 +203,7 @@ export const create = mutation({
       amount: args.amount,
       payee: args.payee,
       notes: args.notes,
+      date: args.date,
       userId: user.subject,
     });
   },
@@ -250,6 +255,7 @@ export const update = mutation({
     amount: v.float64(),
     payee: v.string(),
     notes: v.optional(v.string()),
+    date: v.number(),
   },
   handler: async (ctx, args) => {
     // 1. Ensure the user is authenticated.
@@ -276,6 +282,7 @@ export const update = mutation({
       amount: args.amount,
       payee: args.payee,
       notes: args.notes,
+      date: args.date,
     };
 
     await ctx.db.patch(args.id, updateData);

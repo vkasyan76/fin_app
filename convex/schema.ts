@@ -31,6 +31,7 @@ export default defineSchema({
     amount: v.float64(), // Transaction amount (stored as an integer, e.g., cents)
     payee: v.string(), // Name of the payee
     notes: v.optional(v.string()), // Additional notes for the transaction
+    date: v.number(), // NEW: date stored as a timestamp (milliseconds)
   })
     .index("by_user_id", ["userId"])
     .index("by_account_id", ["accountId"])

@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -8,20 +8,37 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { DatePicker } from "@/components/date-picker";
+import { Select } from "@/components/select";
+
 import { Id } from "../../../../convex/_generated/dataModel";
+import Loader from "@/components/loader";
 
 type FormValues = {
+  accountId: Id<"accounts">; // From Select component
+  categoryId?: Id<"categories">; // From Select component
   payee: string;
   amount: number;
   notes?: string;
+  date?: Date;
 };
+
+// type ApiFormValues = {
+//   accountId: Id<"accounts">;
+//   categoryId: Id<"categories">;
+//   payee: string;
+//   amount: number;
+//   notes?: string;
+//   date: string;
+// };
 
 type Props = {
   id?: Id<"transactions">;
@@ -43,8 +60,29 @@ export const TransactionForm = ({
       payee: defaultValues?.payee || "",
       amount: defaultValues?.amount || 0,
       notes: defaultValues?.notes || "",
+      date: defaultValues?.date || undefined,
     },
   });
+
+  const categoryQuery = useQuery(api.categories.getAll);
+  const accountQuery = useQuery(api.accounts.getAll);
+
+  const IsLoading = !categoryQuery || !accountQuery;
+
+  // Map categories to options
+  const categoryOptions = (categoryQuery ?? []).map((category) => ({
+    label: category.name,
+    value: category._id,
+  }));
+
+  // Map accounts to options
+  const accountOptions = (accountQuery ?? []).map((account) => ({
+    label: account.name,
+    value: account._id,
+  }));
+
+  const createAccount = useMutation(api.accounts.create);
+  const createCategory = useMutation(api.categories.create);
 
   const createTransaction = useMutation(api.transactions.create);
   const updateTransaction = useMutation(api.transactions.update);
@@ -55,32 +93,27 @@ export const TransactionForm = ({
     if (disabled || isSubmitting) return;
     setIsSubmitting(true);
     try {
+      const formattedDate = values.date ? values.date.getTime() : Date.now();
+
       if (id) {
         await updateTransaction({
-          id, // must be a valid convex ID for transactions
-          // Note: In our transactions.update mutation we expect these fields.
-          // In a more complete form you might also allow the user to update accountId or categoryId,
-          // but here we update only payee, amount, and notes.
+          id,
           payee: values.payee.trim(),
-          amount: Number(values.amount), // convert to a number
+          amount: Number(values.amount),
           notes: values.notes?.trim(),
-          // For simplicity, we assume accountId and categoryId remain unchanged.
-          // If needed, you could pass them in as hidden fields or via defaultValues.
-          accountId:
-            "j579ewsye92ntyw3z9yvmvdygx79e0eq" as unknown as Id<"accounts">, // Replace with a valid account ID if available.
-          categoryId: undefined,
+          accountId: values.accountId,
+          categoryId: values.categoryId,
+          date: formattedDate, // Pass formatted date
         });
         toast.success("Transaction updated successfully!");
       } else {
         await createTransaction({
-          // For creating a transaction you need to supply accountId.
-          // Here we hardcode a dummy accountId—replace it with the actual account context.
-          accountId:
-            "j579ewsye92ntyw3z9yvmvdygx79e0eq" as unknown as Id<"accounts">,
-          categoryId: undefined,
+          accountId: values.accountId,
+          categoryId: values.categoryId,
           amount: Number(values.amount),
           payee: values.payee.trim(),
           notes: values.notes?.trim(),
+          date: formattedDate, // Pass formatted date
         });
         toast.success("Transaction created successfully!");
       }
@@ -93,12 +126,98 @@ export const TransactionForm = ({
     }
   };
 
+  if (IsLoading) {
+    return <Loader />;
+  }
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-4 pt-4"
       >
+        <FormField
+          name="date"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date</FormLabel>
+              <FormControl>
+                <DatePicker
+                  value={field.value}
+                  onChange={(date) => field.onChange(date)}
+                  disabled={disabled || isSubmitting}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="accountId"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Account</FormLabel>
+              <FormControl>
+                <Select
+                  options={accountOptions}
+                  onCreate={async (name) => {
+                    try {
+                      // Create a new account using the create mutation
+                      const newAccount = await createAccount({
+                        name,
+                        plaidId: "",
+                      }); // Adjust arguments as needed
+                      toast.success("Account created successfully!");
+                      // Update the form field value with the new account ID
+                      field.onChange(newAccount);
+                    } catch (error) {
+                      console.error("Error creating account:", error);
+                      toast.error("Failed to create account.");
+                    }
+                  }}
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={disabled || isSubmitting}
+                  placeholder="Select an account"
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="categoryId"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <FormControl>
+                <Select
+                  options={categoryOptions}
+                  onCreate={async (name) => {
+                    try {
+                      // Create a new category using the create mutation
+                      const newCategory = await createCategory({ name });
+                      toast.success("Category created successfully!");
+                      // Update the form field value with the new category ID
+                      field.onChange(newCategory);
+                    } catch (error) {
+                      console.error("Error creating category:", error);
+                      toast.error("Failed to create category.");
+                    }
+                  }}
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={disabled || isSubmitting}
+                  placeholder="Select a category"
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
         <FormField
           name="payee"
           control={form.control}
@@ -109,7 +228,7 @@ export const TransactionForm = ({
                 <Input
                   {...field}
                   disabled={disabled || isSubmitting}
-                  placeholder="e.g., Starbucks"
+                  placeholder="Add a payee"
                 />
               </FormControl>
             </FormItem>
@@ -132,6 +251,7 @@ export const TransactionForm = ({
             </FormItem>
           )}
         />
+
         <FormField
           name="notes"
           control={form.control}
@@ -139,8 +259,9 @@ export const TransactionForm = ({
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Input
+                <Textarea
                   {...field}
+                  className="textarea-class" // Replace with your specific Tailwind class for textarea styling
                   disabled={disabled || isSubmitting}
                   placeholder="Optional notes"
                 />

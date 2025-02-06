@@ -31,7 +31,7 @@ export const NewTransactionSheet = () => {
       <SheetContent side="right" className="space-y-4">
         <SheetHeader>
           <SheetTitle>New Transaction</SheetTitle>
-          <SheetDescription>Create a new transaction.</SheetDescription>
+          <SheetDescription>Add a new transaction.</SheetDescription>
         </SheetHeader>
         <TransactionForm onSubmit={onSubmit} />
       </SheetContent>

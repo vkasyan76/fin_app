@@ -4,6 +4,23 @@ import { query } from "./_generated/server";
 import { mutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 
+// non-paginated query for transactions form
+export const getAll = query({
+  handler: async (ctx) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    return await ctx.db
+      .query("categories")
+      .withIndex("by_user_id", (q) => q.eq("userId", user.subject))
+      .collect(); // Fetch all documents
+  },
+});
+
+// paginated query
+
 // Query: Get categories with optional search
 export const get = query({
   args: {
