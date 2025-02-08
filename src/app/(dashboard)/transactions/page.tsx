@@ -11,12 +11,8 @@ import { Loader2 } from "lucide-react";
 import { Row } from "@tanstack/react-table";
 
 export default function TransactionsPage() {
-  // Use an account ID filter if needed.
-  const accountIdString = "j579ewsye92ntyw3z9yvmvdygx79e0eq";
-  const accountId = accountIdString as unknown as Id<"accounts">;
-
-  // Call the transactions get query (which returns an array).
-  const transactions = useQuery(api.transactions.get, { accountId });
+  // Call the transactions get query (fetching all transactions, no account filter).
+  const transactions = useQuery(api.transactions.get, { accountId: undefined });
   console.log("Transactions:", transactions);
 
   // Set up the delete mutation.
@@ -28,7 +24,8 @@ export default function TransactionsPage() {
     payee: tx.payee,
     amount: tx.amount,
     notes: tx.notes,
-    _creationTime: tx._creationTime,
+    _creationTime: tx._creationTime, // Include this field
+    date: new Date(tx.date).toLocaleDateString(), // Format the date
   }));
 
   const handleDelete = async (rows: Row<Transaction>[]) => {

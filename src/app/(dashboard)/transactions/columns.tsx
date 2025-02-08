@@ -65,21 +65,39 @@ export const columns: ColumnDef<Transaction>[] = [
     ),
   },
   {
-    accessorKey: "_creationTime",
+    accessorKey: "date",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Created Date
+        Date
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    // cell: ({ row }) => {
+    //   row.getValue("date");
     cell: ({ row }) => {
-      const date = new Date(row.getValue("_creationTime"));
+      const date = new Date(row.getValue("date"));
       return format(date, "MMM dd, yyyy");
     },
   },
+  // {
+  //   accessorKey: "_creationTime",
+  //   header: ({ column }) => (
+  //     <Button
+  //       variant="ghost"
+  //       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //     >
+  //       Created Date
+  //       <ArrowUpDown className="ml-2 h-4 w-4" />
+  //     </Button>
+  //   ),
+  //   cell: ({ row }) => {
+  //     const date = new Date(row.getValue("_creationTime"));
+  //     return format(date, "MMM dd, yyyy");
+  //   },
+  // },
   {
     id: "actions",
     cell: ({ row }) => <Actions id={row.original.id} />, // Actions component for editing/deleting transactions

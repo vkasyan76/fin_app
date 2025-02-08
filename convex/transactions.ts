@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { subDays } from "date-fns";
+// import { subDays } from "date-fns";
 // import { paginationOptsValidator } from "convex/server";
 import { mutation } from "./_generated/server";
 
@@ -46,11 +46,12 @@ export const get = query({
 
     // Define the date range (defaulting to the last 30 days).
     const now = Date.now();
-    const defaultFrom = subDays(now, 30).getTime();
+    // const defaultFrom = subDays(now, 30).getTime();  // returns only last 30 days
+    const defaultFrom = 0; // start from the Unix epoch.
     const startDate = from ?? defaultFrom;
     const endDate = to ?? now;
 
-    // Build the base query for transactions.
+    // Build the base query for transactions - return all transactions in the past.
     const baseQuery = ctx.db
       .query("transactions")
       .filter((q) =>

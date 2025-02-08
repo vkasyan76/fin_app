@@ -82,10 +82,25 @@ export const TransactionForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (values: FormValues) => {
+    // prevent submission w/o account:
+    if (!values.accountId) {
+      toast.error("Please select an account.");
+      return;
+    }
+
     if (disabled || isSubmitting) return;
     setIsSubmitting(true);
+
     try {
       const formattedDate = values.date ? values.date.getTime() : Date.now();
+      // prevent submission in te future:
+      if (formattedDate > Date.now()) {
+        toast.error("Transaction date cannot be in the future.");
+        return;
+      }
+
+      // Format the amount to two decimal places
+      const formattedAmount = parseFloat(values.amount.toFixed(2));
 
       if (id) {
         await updateTransaction({
@@ -128,10 +143,12 @@ export const TransactionForm = ({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-4 pt-4"
       >
+        {/* Validating the Account Field */}
         <FormField
           name="date"
           control={form.control}
-          render={({ field }) => (
+          rules={{ required: "An account must be selected" }}
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
@@ -141,10 +158,14 @@ export const TransactionForm = ({
                   disabled={disabled || isSubmitting}
                 />
               </FormControl>
+              {fieldState.error && (
+                <p className="text-red-500 text-xs">
+                  {fieldState.error.message}
+                </p>
+              )}
             </FormItem>
           )}
         />
-
         <FormField
           name="accountId"
           control={form.control}
@@ -178,7 +199,6 @@ export const TransactionForm = ({
             </FormItem>
           )}
         />
-
         <FormField
           name="categoryId"
           control={form.control}
@@ -209,7 +229,6 @@ export const TransactionForm = ({
             </FormItem>
           )}
         />
-
         <FormField
           name="amount"
           control={form.control}
@@ -227,7 +246,6 @@ export const TransactionForm = ({
             </FormItem>
           )}
         />
-
         <FormField
           name="payee"
           control={form.control}
@@ -244,7 +262,6 @@ export const TransactionForm = ({
             </FormItem>
           )}
         />
-
         <FormField
           name="notes"
           control={form.control}
