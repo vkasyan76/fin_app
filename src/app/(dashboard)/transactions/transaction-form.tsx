@@ -99,14 +99,15 @@ export const TransactionForm = ({
         return;
       }
 
-      // Format the amount to two decimal places
-      const formattedAmount = parseFloat(values.amount.toFixed(2));
+      // Round the amount to two decimal places - this maybe redundant because the user cannot enter more then 2 decimals.
+      const formattedAmount = Math.round(Number(values.amount) * 100) / 100;
 
       if (id) {
         await updateTransaction({
           id,
           payee: values.payee.trim(),
-          amount: Number(values.amount),
+          // amount: Number(values.amount),
+          amount: formattedAmount,
           notes: values.notes?.trim(),
           accountId: values.accountId,
           categoryId: values.categoryId,
@@ -117,7 +118,8 @@ export const TransactionForm = ({
         await createTransaction({
           accountId: values.accountId,
           categoryId: values.categoryId,
-          amount: Number(values.amount),
+          // amount: Number(values.amount),
+          amount: formattedAmount,
           payee: values.payee.trim(),
           notes: values.notes?.trim(),
           date: formattedDate, // Pass formatted date
