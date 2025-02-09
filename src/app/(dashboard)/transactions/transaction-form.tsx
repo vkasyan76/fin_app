@@ -53,6 +53,8 @@ export const TransactionForm = ({
       amount: defaultValues?.amount || 0,
       notes: defaultValues?.notes || "",
       date: defaultValues?.date || undefined,
+      accountId: defaultValues?.accountId || undefined, // Now include accountId
+      categoryId: defaultValues?.categoryId || undefined, // Now include categoryId
     },
   });
 

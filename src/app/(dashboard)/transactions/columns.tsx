@@ -9,11 +9,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { Actions } from "./actions";
 import { formatCurrency } from "@/lib/utils";
+import { AccountColumn } from "./account-column";
+import { CategoryColumn } from "./category-column";
 
 export type Transaction = {
   id: Id<"transactions">;
-  account?: string | null;
+  account?: string;
+  accountId: Id<"accounts">; // Add accountId here for the cell in the Account column
   category?: string | null; // Update to allow null values to match with transactions.ts;
+  categoryId?: Id<"categories">; // make categoryId optional
   payee: string;
   amount: number;
   notes?: string;
@@ -73,6 +77,14 @@ export const columns: ColumnDef<Transaction>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => {
+      return (
+        <CategoryColumn
+          category={row.getValue("category")}
+          categoryId={row.original.categoryId}
+        />
+      );
+    },
   },
   {
     accessorKey: "account",
@@ -85,6 +97,14 @@ export const columns: ColumnDef<Transaction>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => {
+      return (
+        <AccountColumn
+          account={row.getValue("account")}
+          accountId={row.original.accountId}
+        />
+      );
+    },
   },
   {
     accessorKey: "payee",

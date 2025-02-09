@@ -23,14 +23,21 @@ type Props = {
 
 export const EditTransactionSheet = ({ id, isOpen, onClose }: Props) => {
   // For transactions, our default values include payee, amount, and notes.
+  // ensure that defaultValues includes the accountId field when passing it to TransactionForm
   const [defaultValues, setDefaultValues] = useState<{
     payee: string;
     amount: number;
     notes?: string;
+    date?: Date;
+    accountId: Id<"accounts">; // Add accountId here
+    categoryId?: Id<"categories">;
   }>({
     payee: "",
     amount: 0,
     notes: "",
+    date: undefined,
+    accountId: "" as Id<"accounts">, // Initialize with a placeholder value
+    categoryId: undefined,
   });
 
   // Use the transactions getById query.
@@ -51,6 +58,10 @@ export const EditTransactionSheet = ({ id, isOpen, onClose }: Props) => {
         payee: transactionQuery.payee,
         amount: transactionQuery.amount,
         notes: transactionQuery.notes,
+        // Convert the stored timestamp to a Date object:
+        date: new Date(transactionQuery.date),
+        accountId: transactionQuery.accountId, // Include accountId from the query
+        categoryId: transactionQuery.categoryId,
       });
     }
   }, [transactionQuery]);
