@@ -22,6 +22,8 @@ export default function TransactionsPage() {
   const mappedResults = transactions?.map((tx) => ({
     id: tx.id as Id<"transactions">,
     payee: tx.payee,
+    account: tx.account,
+    category: tx.category,
     amount: tx.amount,
     notes: tx.notes,
     _creationTime: tx._creationTime, // Include this field

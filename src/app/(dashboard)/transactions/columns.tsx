@@ -2,14 +2,18 @@
 
 import { Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { Actions } from "./actions";
+import { formatCurrency } from "@/lib/utils";
 
 export type Transaction = {
   id: Id<"transactions">;
+  account?: string | null;
+  category?: string | null; // Update to allow null values to match with transactions.ts;
   payee: string;
   amount: number;
   notes?: string;
@@ -41,6 +45,48 @@ export const columns: ColumnDef<Transaction>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "date",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    // cell: ({ row }) => {
+    //   row.getValue("date");
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("date"));
+      return <span>{format(date, "MMM dd, yyyy")}</span>;
+    },
+  },
+  {
+    accessorKey: "category",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Category
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+  },
+  {
+    accessorKey: "account",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Account
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+  },
+  {
     accessorKey: "payee",
     header: ({ column }) => (
       <Button
@@ -63,41 +109,19 @@ export const columns: ColumnDef<Transaction>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-  },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Date
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    // cell: ({ row }) => {
-    //   row.getValue("date");
     cell: ({ row }) => {
-      const date = new Date(row.getValue("date"));
-      return format(date, "MMM dd, yyyy");
+      const amount = parseFloat(row.getValue("amount"));
+      return (
+        <Badge
+          variant={amount < 0 ? "destructive" : "primary"}
+          className="text-xs font-medium px-3.5 py-2.5"
+        >
+          {formatCurrency(amount)}
+        </Badge>
+      );
     },
   },
-  // {
-  //   accessorKey: "_creationTime",
-  //   header: ({ column }) => (
-  //     <Button
-  //       variant="ghost"
-  //       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //     >
-  //       Created Date
-  //       <ArrowUpDown className="ml-2 h-4 w-4" />
-  //     </Button>
-  //   ),
-  //   cell: ({ row }) => {
-  //     const date = new Date(row.getValue("_creationTime"));
-  //     return format(date, "MMM dd, yyyy");
-  //   },
-  // },
+
   {
     id: "actions",
     cell: ({ row }) => <Actions id={row.original.id} />, // Actions component for editing/deleting transactions
