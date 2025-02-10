@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { EditCategorySheet } from "../categories/edit-category-sheet";
 import { SelectCategorySheet } from "../categories/select-category-sheet";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
@@ -21,7 +20,6 @@ export const CategoryColumn = ({
   category,
   categoryId: initialCategoryId,
 }: Props) => {
-  // Local state for the category info
   const [currentCategoryId, setCurrentCategoryId] = useState<
     Id<"categories"> | undefined
   >(initialCategoryId);
@@ -30,7 +28,7 @@ export const CategoryColumn = ({
   );
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Use our dedicated mutation.
+  // Use the dedicated mutation for updating just the category.
   const updateTransactionCategory = useMutation(
     api.transactions.updateTransactionCategory
   );
@@ -43,8 +41,7 @@ export const CategoryColumn = ({
     setIsSheetOpen(false);
   };
 
-  // When a category is selected (or created) via SelectCategorySheet,
-  // call the mutation to update the transaction and update local state.
+  // When a new category is selected from the sheet, call the mutation.
   const handleSelectCategory = async (
     newCategoryId: string,
     newCategoryName: string
@@ -73,23 +70,14 @@ export const CategoryColumn = ({
           "text-rose-500": !currentCategoryId,
         })}
       >
-        {/* Show the triangle icon only if no category is assigned */}
         {!currentCategoryId && <TriangleAlert className="mr-2 h-4 w-4" />}
         <span>{currentCategoryName || "Uncategorized"}</span>
       </div>
-      {currentCategoryId ? (
-        <EditCategorySheet
-          id={currentCategoryId}
-          isOpen={isSheetOpen}
-          onClose={handleCloseSheet}
-        />
-      ) : (
-        <SelectCategorySheet
-          isOpen={isSheetOpen}
-          onOpenChange={setIsSheetOpen}
-          onSelectCategory={handleSelectCategory}
-        />
-      )}
+      <SelectCategorySheet
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        onSelectCategory={handleSelectCategory}
+      />
     </>
   );
 };
