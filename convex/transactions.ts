@@ -292,3 +292,26 @@ export const update = mutation({
     return { success: true };
   },
 });
+
+// Define a mutation to update the category of a transaction to use in category-column.tsx.
+export const updateTransactionCategory = mutation({
+  args: {
+    id: v.id("transactions"),
+    // categoryId is optional so you can clear it if needed.
+    categoryId: v.optional(v.id("categories")),
+  },
+  handler: async (ctx, { id, categoryId }) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new ConvexError("Unauthorized");
+
+    // Fetch the transaction to ensure it belongs to the user.
+    const tx = await ctx.db.get(id);
+    if (!tx || tx.userId !== user.subject) {
+      throw new ConvexError("Transaction not found or unauthorized");
+    }
+
+    // Update only the categoryId.
+    await ctx.db.patch(id, { categoryId });
+    return { success: true };
+  },
+});
