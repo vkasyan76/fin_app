@@ -95,38 +95,38 @@ export const create = mutation({
 });
 
 // Mutation: Remove categories.
-export const remove = mutation({
-  args: {
-    ids: v.array(v.id("categories")),
-  },
-  handler: async (ctx, { ids }) => {
-    const user = await ctx.auth.getUserIdentity();
-    if (!user) {
-      throw new ConvexError("Unauthorized");
-    }
+// export const remove = mutation({
+//   args: {
+//     ids: v.array(v.id("categories")),
+//   },
+//   handler: async (ctx, { ids }) => {
+//     const user = await ctx.auth.getUserIdentity();
+//     if (!user) {
+//       throw new ConvexError("Unauthorized");
+//     }
 
-    // Validate that the categories belong to the current user.
-    const categories = await Promise.all(
-      ids.map(async (id) => {
-        const category = await ctx.db.get(id);
-        if (!category) {
-          throw new ConvexError(`Category with ID ${id} not found`);
-        }
-        if (category.userId !== user.subject) {
-          throw new ConvexError("Unauthorized");
-        }
-        return category;
-      })
-    );
+//     // Validate that the categories belong to the current user.
+//     const categories = await Promise.all(
+//       ids.map(async (id) => {
+//         const category = await ctx.db.get(id);
+//         if (!category) {
+//           throw new ConvexError(`Category with ID ${id} not found`);
+//         }
+//         if (category.userId !== user.subject) {
+//           throw new ConvexError("Unauthorized");
+//         }
+//         return category;
+//       })
+//     );
 
-    // Delete all validated categories.
-    const deletedCount = await Promise.all(
-      categories.map((category) => ctx.db.delete(category._id))
-    );
+//     // Delete all validated categories.
+//     const deletedCount = await Promise.all(
+//       categories.map((category) => ctx.db.delete(category._id))
+//     );
 
-    return { deletedCount: deletedCount.length };
-  },
-});
+//     return { deletedCount: deletedCount.length };
+//   },
+// });
 
 // Mutation: Update an existing category.
 export const update = mutation({
@@ -150,5 +150,59 @@ export const update = mutation({
     // Update the category name.
     await ctx.db.patch(id, { name });
     return { success: true };
+  },
+});
+
+//  assign unset to categoryid in the transactions table if the respective category is removed.
+
+export const remove = mutation({
+  args: {
+    ids: v.array(v.id("categories")),
+  },
+  handler: async (ctx, { ids }) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Validate that each category belongs to the current user.
+    const categories = await Promise.all(
+      ids.map(async (id) => {
+        const category = await ctx.db.get(id);
+        if (!category) {
+          throw new ConvexError(`Category with ID ${id} not found`);
+        }
+        if (category.userId !== user.subject) {
+          throw new ConvexError("Unauthorized");
+        }
+        return category;
+      })
+    );
+
+    // For each category being removed, update all transactions that reference it.
+    for (const category of categories) {
+      // Query for all transactions that have this category.
+      const transactions = await ctx.db
+        .query("transactions")
+        .filter((q) => q.eq(q.field("categoryId"), category._id))
+        .collect();
+
+      // Update each transaction individually to clear the category reference.
+      await Promise.all(
+        transactions.map((tx) =>
+          ctx.db.patch(tx._id, { categoryId: undefined })
+        )
+      );
+    }
+
+    // Now delete all validated categories.
+    const deletedResults = await Promise.all(
+      categories.map(async (category) => {
+        await ctx.db.delete(category._id);
+        return category._id;
+      })
+    );
+
+    return { deletedCount: deletedResults.length };
   },
 });
