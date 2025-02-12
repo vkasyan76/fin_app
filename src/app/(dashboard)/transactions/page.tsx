@@ -9,14 +9,44 @@ import { columns, Transaction } from "./columns";
 import { DataTable } from "./data-table-transactions";
 import { Loader2 } from "lucide-react";
 import { Row } from "@tanstack/react-table";
+import { useState } from "react";
+import { UploadButton } from "./upload/upload-button";
+import { ImportCard } from "./upload/import-card";
+
+// Enum for handling different views (list or import mode)
+enum VARIANTS {
+  LIST = "LIST",
+  IMPORT = "IMPORT",
+}
+
+// Initial state for import results
+const INITIAL_IMPORT_RESULTS = {
+  data: [],
+  errors: [],
+  meta: {},
+};
 
 export default function TransactionsPage() {
   // Call the transactions get query (fetching all transactions, no account filter).
   const transactions = useQuery(api.transactions.get, { accountId: undefined });
-  console.log("Transactions:", transactions);
-
   // Set up the delete mutation.
   const deleteTransactions = useMutation(api.transactions.remove);
+  // console.log("Transactions:", transactions);
+  // Handle CSV upload results
+  const [variant, setVariant] = useState<VARIANTS>(VARIANTS.LIST);
+  const [importResults, setImportResults] = useState(INITIAL_IMPORT_RESULTS);
+
+  const onUpload = (results: typeof INITIAL_IMPORT_RESULTS) => {
+    console.log("Results:", results);
+    setImportResults(results);
+    setVariant(VARIANTS.IMPORT);
+  };
+
+  // Handle canceling the import process
+  const onCancelImport = () => {
+    setImportResults(INITIAL_IMPORT_RESULTS);
+    setVariant(VARIANTS.LIST);
+  };
 
   // Map the transactions result into the shape our DataTable expects.
   const mappedResults = transactions?.map((tx) => ({
@@ -54,6 +84,18 @@ export default function TransactionsPage() {
     );
   }
 
+  if (variant === VARIANTS.IMPORT) {
+    return (
+      <>
+        <ImportCard
+          data={importResults.data}
+          onCancel={onCancelImport}
+          onSubmit={() => {}}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-28">
       <Card className="border-none drop-shadow-sm">
@@ -61,7 +103,10 @@ export default function TransactionsPage() {
           <CardTitle className="text-xl line-clamp-1">
             Transaction History
           </CardTitle>
-          <NewTransactionSheet />
+          <div className="flex flex-col lg:flex-row gap-y-2 items-center gap-x-2">
+            <NewTransactionSheet />
+            <UploadButton onUpload={onUpload} />
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable
