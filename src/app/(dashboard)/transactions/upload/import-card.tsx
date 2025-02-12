@@ -1,11 +1,16 @@
 "use client";
 
+import { useMutation } from "convex/react";
+import { api } from "../../../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImportTable } from "./import-table";
 import { useState } from "react";
+import { parse } from "date-fns";
+import { toast } from "sonner";
 
-const dateFormat = "yyyy-MM-dd HH:mm:ss";
+// const dateFormat = "yyyy-MM-dd HH:mm:ss";
+const dateFormat = "dd/MM/yyyy HH:mm";
 const outputFormat = "yyyy-MM-dd";
 
 const requiredOptions = ["amount", "date", "payee"];
@@ -29,8 +34,75 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
   const headers = data[0];
   const body = data.slice(1);
 
+  const bulkCreateTransactions = useMutation(api.transactions.bulkCreate);
+
   // Function to track column selection progress - for continue button
   const progress = Object.values(selectedColumns).filter(Boolean).length;
+
+  const handleContinue = () => {
+    // Map headers: for each header, pick the mapped field from selectedColumns.
+    const mappedHeaders = headers.map((_, index) => {
+      return selectedColumns[`column_${index}`] || null;
+    });
+
+    // Map the body rows: for each row, keep the cell value only if the corresponding header mapping is set.
+    const mappedBody = body.map((row) => {
+      return row.map((cell, index) => {
+        return selectedColumns[`column_${index}`] ? cell : null;
+      });
+    });
+
+    // Reduce each row into an object based on the mapped headers.
+    const arrayOfData = mappedBody.map((row) =>
+      row.reduce((acc: Record<string, string>, cell, index) => {
+        const header = mappedHeaders[index];
+        if (header !== null && cell !== null && cell.trim() !== "") {
+          acc[header] = cell;
+        }
+        return acc;
+      }, {})
+    );
+
+    // Filter out rows that are completely empty.
+    const validArrayOfData = arrayOfData.filter(
+      (row) => Object.keys(row).length > 0
+    );
+
+    console.log("Raw mapped data:", validArrayOfData);
+
+    // Validate that each required field is present.
+    for (const [i, item] of validArrayOfData.entries()) {
+      for (const key of requiredOptions) {
+        if (!item[key]) {
+          console.error(`Row ${i} is missing required field: ${key}`);
+          toast.error(`Row ${i + 1} is missing required field: ${key}`);
+          return; // Stop processing if any required field is missing.
+        }
+      }
+    }
+
+    // Transform each object to match the transaction schema.
+    const formattedData = validArrayOfData.map((item) => {
+      // Convert the amount string to a number.
+      const amount = parseFloat(item.amount);
+
+      // Parse the date string using the correct date format.
+      const parsedDate = parse(item.date, dateFormat, new Date());
+      const timestamp = parsedDate.getTime();
+
+      return {
+        ...item,
+        amount,
+        date: timestamp,
+      };
+    });
+
+    console.log("Formatted data:", formattedData);
+    console.log(new Date(formattedData[0].date).toLocaleString());
+
+    // Pass the formatted data to the onSubmit callback.
+    onSubmit(formattedData);
+  };
 
   // method for setting selected columns in the table head:
   const onTableHeadSelectChange = (
@@ -74,7 +146,8 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
           <Button
             size="sm"
             disabled={progress < requiredOptions.length} // Disabled if not all required fields are selected
-            onClick={() => onSubmit(selectedColumns)}
+            // onClick={() => onSubmit(selectedColumns)}
+            onClick={handleContinue}
             className="w-full lg:w-auto"
           >
             Continue ({progress}/{requiredOptions.length})

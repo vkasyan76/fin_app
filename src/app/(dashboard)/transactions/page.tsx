@@ -103,7 +103,7 @@ export default function TransactionsPage() {
           <CardTitle className="text-xl line-clamp-1">
             Transaction History
           </CardTitle>
-          <div className="flex flex-col lg:flex-row gap-y-2 items-center gap-x-2">
+          <div className="flex flex-col w-full gap-2 lg:flex-row lg:w-auto">
             <NewTransactionSheet />
             <UploadButton onUpload={onUpload} />
           </div>

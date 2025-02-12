@@ -210,6 +210,46 @@ export const create = mutation({
   },
 });
 
+// bulk Create - for uploaded spreadsheet
+
+export const bulkCreate = mutation({
+  args: {
+    transactions: v.array(
+      v.object({
+        accountId: v.id("accounts"),
+        categoryId: v.optional(v.id("categories")),
+        amount: v.float64(),
+        payee: v.string(),
+        notes: v.optional(v.string()),
+        date: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, { transactions }) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Insert all transactions in a single batch
+    const insertedTransactions = await Promise.all(
+      transactions.map(async (transaction) => {
+        return ctx.db.insert("transactions", {
+          accountId: transaction.accountId,
+          categoryId: transaction.categoryId,
+          amount: transaction.amount,
+          payee: transaction.payee,
+          notes: transaction.notes,
+          date: transaction.date,
+          userId: user.subject, // Assign the user ID from authentication
+        });
+      })
+    );
+
+    return insertedTransactions; // Return the inserted transaction IDs
+  },
+});
+
 export const remove = mutation({
   args: {
     // Accept an array of transaction IDs to delete.
