@@ -11,10 +11,11 @@ import { toast } from "sonner";
 
 // const dateFormat = "yyyy-MM-dd HH:mm:ss";
 const dateFormat = "dd/MM/yyyy HH:mm";
-const outputFormat = "yyyy-MM-dd";
+// const outputFormat = "yyyy-MM-dd";
 
 const requiredOptions = ["amount", "date", "payee"];
 
+// This is like a notebook where we write down which column is what. selectedColumns is an object where the keys are strings and values are either strings or null
 interface SelectedColumnsState {
   [key: string]: string | null;
 }
@@ -36,7 +37,7 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
 
   const bulkCreateTransactions = useMutation(api.transactions.bulkCreate);
 
-  // Function to track column selection progress - for continue button
+  // Function to track column selection progress - for continue button. .filter(Boolean) removes all falsy values (null, undefined, false, "", 0).
   const progress = Object.values(selectedColumns).filter(Boolean).length;
 
   const handleContinue = () => {
@@ -125,7 +126,7 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
         value = null;
       }
 
-      // Assign the selected value to the respective column
+      // Assign the selected value to the respective column.  stores the selected column for each index dynamically
       newSelectedColumns[`column_${columnIndex}`] = value;
 
       return newSelectedColumns;
