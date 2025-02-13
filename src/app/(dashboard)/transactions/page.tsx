@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import type { Transaction as TransactionType } from "../../../../convex/transactions";
 import { NewTransactionSheet } from "./new-transaction-sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { columns, Transaction } from "./columns";
@@ -12,6 +13,8 @@ import { Row } from "@tanstack/react-table";
 import { useState } from "react";
 import { UploadButton } from "./upload/upload-button";
 import { ImportCard } from "./upload/import-card";
+import { useSelectAccount } from "@/hooks/use-select-account";
+import { toast } from "sonner";
 
 // Enum for handling different views (list or import mode)
 enum VARIANTS {
@@ -27,11 +30,17 @@ const INITIAL_IMPORT_RESULTS = {
 };
 
 export default function TransactionsPage() {
+  // Account Select Dialog for Bulk Upload
+  const [AccountDialog, confirm] = useSelectAccount();
+
   // Call the transactions get query (fetching all transactions, no account filter).
   const transactions = useQuery(api.transactions.get, { accountId: undefined });
   // Set up the delete mutation.
   const deleteTransactions = useMutation(api.transactions.remove);
   // console.log("Transactions:", transactions);
+
+  const CreateTransactions = useMutation(api.transactions.bulkCreate);
+
   // Handle CSV upload results
   const [variant, setVariant] = useState<VARIANTS>(VARIANTS.LIST);
   const [importResults, setImportResults] = useState(INITIAL_IMPORT_RESULTS);
@@ -67,6 +76,43 @@ export default function TransactionsPage() {
     await deleteTransactions({ ids });
   };
 
+  const onSubmitImport = async (
+    formattedData: Omit<TransactionType, "_id" | "_creationTime" | "userId">[]
+  ) => {
+    console.log("Opening Select Account Dialog...");
+    // Ask the user to confirm and select an account
+    const accountId = await confirm();
+
+    if (!accountId) {
+      toast.error("Please select an account to continue.");
+      return;
+    }
+
+    // Ensure the data follows the expected `TransactionType` structure
+    //Omit<Type, Keys> is a TypeScript utility type that creates a new type by removing specified properties (Keys) from an existing Type.
+    const data: Omit<TransactionType, "_id" | "_creationTime" | "userId">[] =
+      formattedData.map((item) => ({
+        accountId: accountId as Id<"accounts">,
+        categoryId: item.categoryId as Id<"categories"> | undefined,
+        amount: item.amount, // Convert to number
+        payee: String(item.payee), // Ensure it's a string
+        notes: item.notes ? String(item.notes) : undefined,
+        date: item.date, // Already a timestamp from `handleContinue`
+      }));
+
+    try {
+      // Call the Convex mutation to create transactions in bulk
+      await CreateTransactions({ transactions: data });
+
+      // Reset the import state after successful import
+      onCancelImport();
+      toast.success("Transactions imported successfully!");
+    } catch (error) {
+      console.error("Error importing transactions:", error);
+      toast.error("Failed to import transactions.");
+    }
+  };
+
   if (!transactions) {
     return (
       <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
@@ -87,10 +133,11 @@ export default function TransactionsPage() {
   if (variant === VARIANTS.IMPORT) {
     return (
       <>
+        <AccountDialog />
         <ImportCard
           data={importResults.data}
           onCancel={onCancelImport}
-          onSubmit={() => {}}
+          onSubmit={onSubmitImport}
         />
       </>
     );

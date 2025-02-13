@@ -355,3 +355,5 @@ export const updateTransactionCategory = mutation({
     return { success: true };
   },
 });
+
+export type { Transaction };

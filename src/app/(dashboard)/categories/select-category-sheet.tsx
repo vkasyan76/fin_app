@@ -29,6 +29,7 @@ export const SelectCategorySheet = ({
   const createCategory = useMutation(api.categories.create);
 
   // Map categories to options expected by your Select component.
+  //eslint-disable-next-line
   const options = categories.map((cat: any) => ({
     label: cat.name,
     value: cat._id,

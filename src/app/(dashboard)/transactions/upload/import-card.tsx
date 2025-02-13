@@ -35,8 +35,6 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
   const headers = data[0];
   const body = data.slice(1);
 
-  const bulkCreateTransactions = useMutation(api.transactions.bulkCreate);
-
   // Function to track column selection progress - for continue button. .filter(Boolean) removes all falsy values (null, undefined, false, "", 0).
   const progress = Object.values(selectedColumns).filter(Boolean).length;
 
