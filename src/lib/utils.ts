@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { eachDayOfInterval, isSameDay } from "date-fns";
+import { eachDayOfInterval, isSameDay, parse, isValid } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -68,4 +68,33 @@ export function fillMissingDays(
   });
 
   return transactionsByDay;
+}
+
+// for transactions upload
+/**
+ * Detects the date format based on the provided date string.
+ * Supports:
+ * - European format: `dd/MM/yyyy HH:mm`
+ * - American format: `MM/dd/yyyy HH:mm`
+ *
+ * @param {string} dateString - The date string to detect.
+ * @returns {string | null} - The detected format or null if unknown.
+ */
+export function detectDateFormat(dateString: string): string | null {
+  if (!dateString || typeof dateString !== "string") {
+    return null;
+  }
+
+  // Check for European format (dd/MM/yyyy HH:mm)
+  if (/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}$/.test(dateString)) {
+    return "dd/MM/yyyy HH:mm";
+  }
+
+  // Check for American format (MM/dd/yyyy HH:mm)
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}\s\d{2}:\d{2}$/.test(dateString)) {
+    return "MM/dd/yyyy HH:mm";
+  }
+
+  console.warn("Unknown date format:", dateString);
+  return null; // Return null if format is unknown
 }
