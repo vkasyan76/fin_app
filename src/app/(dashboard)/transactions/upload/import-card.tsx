@@ -6,12 +6,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImportTable } from "./import-table";
 import { useState } from "react";
-import { parse } from "date-fns";
+import { parse, isValid } from "date-fns";
 import { toast } from "sonner";
 
 // const dateFormat = "yyyy-MM-dd HH:mm:ss";
-const dateFormat = "dd/MM/yyyy HH:mm";
+// const dateFormat = "dd/MM/yyyy HH:mm";
 // const outputFormat = "yyyy-MM-dd";
+
+// Fix for Parsing Dates in File Upload
+// const locale = navigator.language || "en-US";
+// const inputFormat =
+//   locale.startsWith("en-GB") || locale.startsWith("de")
+//     ? "dd/MM/yyyy HH:mm"
+//     : "MM/dd/yyyy HH:mm";
+
+// more robust apprach to date parsing:
+const detectDateFormat = (dateString: string): string => {
+  // Check for common date formats
+  if (/\d{2}\/\d{2}\/\d{4}/.test(dateString)) {
+    return "dd/MM/yyyy HH:mm"; // European
+  } else if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(dateString)) {
+    return "MM/dd/yyyy HH:mm"; // American
+  } else {
+    console.warn("Unknown date format:", dateString);
+    return "yyyy-MM-dd HH:mm:ss"; // Fallback format
+  }
+};
 
 const requiredOptions = ["amount", "date", "payee"];
 
@@ -81,23 +101,44 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
     }
 
     // Transform each object to match the transaction schema.
-    const formattedData = validArrayOfData.map((item) => {
-      // Convert the amount string to a number.
-      const amount = parseFloat(item.amount);
+    const formattedData = validArrayOfData
+      .map((item) => {
+        // Convert the amount string to a number.
+        const amount = parseFloat(item.amount);
 
-      // Parse the date string using the correct date format.
-      const parsedDate = parse(item.date, dateFormat, new Date());
-      const timestamp = parsedDate.getTime();
+        // Parse the date string using the correct date format.
+        // const parsedDate = parse(item.date, dateFormat, new Date());
+        // Fix for Parsing Dates in File Upload:
+        // const parsedDate = parse(item.date, inputFormat, new Date());
+        // const timestamp = parsedDate.getTime();
 
-      return {
-        ...item,
-        amount,
-        date: timestamp,
-      };
-    });
+        // Detect format based on the first date entry
+        const formatToUse = detectDateFormat(item.date);
+        const parsedDate = parse(item.date, formatToUse, new Date());
+
+        // If parsing fails, log the issue
+        if (!isValid(parsedDate)) {
+          console.error("Invalid date detected:", item.date);
+          toast.error(`Invalid date: ${item.date}`);
+          return null; // Skip invalid rows
+        }
+
+        // return {
+        //   ...item,
+        //   amount,
+        //   date: timestamp,
+        // };
+
+        return {
+          ...item,
+          amount,
+          date: parsedDate.getTime(),
+        };
+      })
+      .filter(Boolean); // Remove invalid entries;
 
     console.log("Formatted data:", formattedData);
-    console.log(new Date(formattedData[0].date).toLocaleString());
+    // console.log(new Date(formattedData[0].date).toLocaleString());
 
     // Pass the formatted data to the onSubmit callback.
     onSubmit(formattedData);

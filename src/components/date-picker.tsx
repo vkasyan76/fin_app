@@ -21,6 +21,13 @@ export const DatePicker = ({
   onChange: SelectSingleEventHandler;
   disabled?: boolean;
 }) => {
+  // Fix for the Date Format Issue
+  const locale = navigator.language || "en-US";
+  const displayFormat =
+    locale.startsWith("en-GB") || locale.startsWith("de")
+      ? "dd/MM/yyyy"
+      : "MM/dd/yyyy";
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -33,7 +40,8 @@ export const DatePicker = ({
           )}
         >
           <CalendarIcon className="size-4 mr-2" />
-          {value ? format(value, "PPP") : <span>Pick a date</span>}
+          {/* {value ? format(value, "PPP") : <span>Pick a date</span>} */}
+          {value ? format(value, displayFormat) : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent>

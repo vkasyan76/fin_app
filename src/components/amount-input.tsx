@@ -24,10 +24,28 @@ export const AmountInput = ({
   placeholder,
   disabled,
 }: Props) => {
-  // Ensure `value` is always treated as a string for the input field
+  // Ensure `value` is always treated as a string for the input field - initial version
+  // const stringValue = typeof value === "number" ? value.toFixed(2) : value;
+  // const parsedValue = parseFloat(stringValue || "0");
+
+  // Convert the value into a properly formatted number using the browser's locale
+  const parseLocaleNumber = (value: string | undefined) => {
+    if (!value) return 0;
+
+    const locale = navigator.language || "en-US";
+    const formatter = new Intl.NumberFormat(locale);
+    const decimalSeparator = formatter.format(1.1).replace(/\d/g, ""); // Get decimal separator (either "." or ",")
+
+    const normalizedValue = value
+      .replace(new RegExp(`[^0-9${decimalSeparator}-]`, "g"), "") // Remove non-numeric chars
+      .replace(decimalSeparator, "."); // Convert to standard JS format
+
+    return parseFloat(normalizedValue);
+  };
+
   const stringValue = typeof value === "number" ? value.toFixed(2) : value;
-  const parsedValue = parseFloat(stringValue || "0");
-  // const parsedValue = parseFloat(value);
+  const parsedValue = parseLocaleNumber(stringValue);
+
   const isIncome = parsedValue > 0;
   const isExpense = parsedValue < 0;
 
