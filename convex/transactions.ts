@@ -482,6 +482,7 @@ export const getCategorySummary = query({
       )
       .collect();
 
+    // we add the transaction's amount to its category in categoryTotals. Math.abs(tx.amount) makes sure we always get a positive value.
     const categoryTotals: Record<string, number> = {};
     for (const tx of categorySpending) {
       if (!tx.categoryId) continue;
@@ -489,6 +490,7 @@ export const getCategorySummary = query({
         (categoryTotals[tx.categoryId] || 0) + Math.abs(tx.amount);
     }
 
+    // extract all category IDs from categoryTotals
     const categoryIds = Object.keys(categoryTotals);
     const categoryDocs = await Promise.all(
       categoryIds.map(async (id) => {
@@ -499,12 +501,15 @@ export const getCategorySummary = query({
       })
     );
 
+    // •	Ensures no null values exist in categoryDocs. •	Casts the result into a list of objects with id, name, and value.
     const validCategories = categoryDocs.filter(Boolean) as {
       id: string;
       name: string;
       value: number;
     }[];
     validCategories.sort((a, b) => b.value - a.value);
+
+    // Separating Top 3 Categories
 
     const topCategories = validCategories.slice(0, 3);
     const otherCategories = validCategories.slice(3);
@@ -513,6 +518,8 @@ export const getCategorySummary = query({
       0
     );
     const finalCategories = [...topCategories];
+
+    // Summing Up "Other" Categories
 
     if (otherCategories.length > 0) {
       finalCategories.push({ id: "other", name: "Other", value: otherSum });
