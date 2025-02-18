@@ -163,16 +163,14 @@ export const getSummary = query({
     }));
 
     return {
-      data: {
-        remainingAmount: currentPeriod.remaining,
-        remainingChange,
-        incomeAmount: currentPeriod.income,
-        incomeChange,
-        expensesAmount: currentPeriod.expenses,
-        expensesChange,
-        categories: finalCategories,
-        days,
-      },
+      remainingAmount: currentPeriod.remaining,
+      remainingChange,
+      incomeAmount: currentPeriod.income,
+      incomeChange,
+      expensesAmount: currentPeriod.expenses,
+      expensesChange,
+      categories: finalCategories,
+      days,
     };
   },
 });
