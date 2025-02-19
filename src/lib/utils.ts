@@ -77,12 +77,15 @@ export function fillMissingDays(
   return transactionsByDay;
 }
 
-// for transactions upload
+// for transactions upload & for columns.tsx
+
 /**
  * Detects the date format based on the provided date string.
  * Supports:
- * - European format: `dd/MM/yyyy HH:mm`
- * - American format: `MM/dd/yyyy HH:mm`
+ * - European format with slashes: "dd/MM/yyyy HH:mm"
+ * - American format with slashes: "MM/dd/yyyy HH:mm"
+ * - European format with dots: "d.M.yyyy HH:mm" (supports both single and double digits)
+ * - European format with full timestamp (dots with comma): "d.M.yyyy, HH:mm:ss"
  *
  * @param {string} dateString - The date string to detect.
  * @returns {string | null} - The detected format or null if unknown.
@@ -92,18 +95,62 @@ export function detectDateFormat(dateString: string): string | null {
     return null;
   }
 
-  // Check for European format (dd/MM/yyyy HH:mm)
-  if (/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}$/.test(dateString)) {
+  // Match European format (slashes)
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}(\s\d{2}:\d{2})?$/.test(dateString)) {
+    console.log(`Detected European format (slashes): ${dateString}`);
     return "dd/MM/yyyy HH:mm";
   }
 
-  // Check for American format (MM/dd/yyyy HH:mm)
-  if (/^\d{1,2}\/\d{1,2}\/\d{4}\s\d{2}:\d{2}$/.test(dateString)) {
+  // Match American format (slashes)
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}(\s\d{2}:\d{2})?$/.test(dateString)) {
+    console.log(`Detected American format (slashes): ${dateString}`);
     return "MM/dd/yyyy HH:mm";
   }
 
+  // Match European format (dots), supports single or double digits for day/month
+  if (/^\d{1,2}\.\d{1,2}\.\d{4}(\s\d{2}:\d{2})?$/.test(dateString)) {
+    console.log(`Detected European format (dots): ${dateString}`);
+    return "d.M.yyyy HH:mm"; // Works for both "d.M.yyyy" and "dd.MM.yyyy"
+  }
+
+  // Match European format with full timestamp (dots with comma)
+  if (/^\d{1,2}\.\d{1,2}\.\d{4},\s\d{2}:\d{2}:\d{2}$/.test(dateString)) {
+    console.log(`Detected European format (dots with time): ${dateString}`);
+    return "d.M.yyyy, HH:mm:ss";
+  }
+
   console.warn("Unknown date format:", dateString);
-  return null; // Return null if format is unknown
+  return null;
+}
+
+/**
+ * Attempts to parse the given date string using a list of possible formats.
+ * Returns the parsed Date if successful, or null otherwise.
+ *
+ * @param {string} dateString - The date string to parse.
+ * @returns {Date | null}
+ */
+export function parseDateWithFallback(dateString: string): Date | null {
+  const possibleFormats = [
+    "dd/MM/yyyy HH:mm",
+    "dd/MM/yyyy",
+    "MM/dd/yyyy HH:mm",
+    "MM/dd/yyyy",
+    "d.M.yyyy HH:mm",
+    "d.M.yyyy",
+    "d.M.yyyy, HH:mm:ss",
+    "yyyy-MM-dd HH:mm:ss",
+  ];
+
+  for (const fmt of possibleFormats) {
+    const parsed = parse(dateString, fmt, new Date());
+    if (isValid(parsed)) {
+      console.log(`Parsed using fallback format ${fmt}: ${dateString}`);
+      return parsed;
+    }
+  }
+  console.warn("Fallback failed for date:", dateString);
+  return null;
 }
 
 // formatDateRange Function for the summary:

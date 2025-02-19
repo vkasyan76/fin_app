@@ -17,6 +17,20 @@ type Props = {
   disabled?: boolean;
 };
 
+// Helper: Parse the input value according to the browser's locale.
+const parseLocaleNumber = (value: string | undefined): number => {
+  if (!value) return 0;
+  const locale = navigator.language || "en-US";
+  const formatter = new Intl.NumberFormat(locale);
+  // Determine the decimal separator (either '.' or ',')
+  const decimalSeparator = formatter.format(1.1).replace(/\d/g, "");
+  // Remove any non-digit/decimal characters and convert locale-specific separator to '.'
+  const normalizedValue = value
+    .replace(new RegExp(`[^0-9${decimalSeparator}-]`, "g"), "")
+    .replace(decimalSeparator, ".");
+  return parseFloat(normalizedValue);
+};
+
 // adjust the component to work with both string and number values:
 export const AmountInput = ({
   value,
@@ -29,19 +43,6 @@ export const AmountInput = ({
   // const parsedValue = parseFloat(stringValue || "0");
 
   // Convert the value into a properly formatted number using the browser's locale
-  const parseLocaleNumber = (value: string | undefined) => {
-    if (!value) return 0;
-
-    const locale = navigator.language || "en-US";
-    const formatter = new Intl.NumberFormat(locale);
-    const decimalSeparator = formatter.format(1.1).replace(/\d/g, ""); // Get decimal separator (either "." or ",")
-
-    const normalizedValue = value
-      .replace(new RegExp(`[^0-9${decimalSeparator}-]`, "g"), "") // Remove non-numeric chars
-      .replace(decimalSeparator, "."); // Convert to standard JS format
-
-    return parseFloat(normalizedValue);
-  };
 
   const stringValue = typeof value === "number" ? value.toFixed(2) : value;
   const parsedValue = parseLocaleNumber(stringValue);
@@ -89,6 +90,12 @@ export const AmountInput = ({
         decimalsLimit={2}
         decimalScale={2}
         onValueChange={onChange}
+        // onBlur normalizes the value on losing focus.
+        onBlur={(e) => {
+          const currentValue = e.target.value;
+          const normalized = parseLocaleNumber(currentValue);
+          onChange(normalized.toFixed(2));
+        }}
         disabled={disabled}
       />
       <p className="text-xs text-muted-foreground mt-2">

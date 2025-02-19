@@ -6,9 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { format } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 import { Actions } from "./actions";
-import { formatCurrency } from "@/lib/utils";
+import {
+  detectDateFormat,
+  formatCurrency,
+  parseDateWithFallback,
+} from "@/lib/utils";
 import { AccountColumn } from "./account-column";
 import { CategoryColumn } from "./category-column";
 
@@ -59,10 +63,41 @@ export const columns: ColumnDef<Transaction>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    // cell: ({ row }) => {
-    //   row.getValue("date");
+
     cell: ({ row }) => {
-      const date = new Date(row.getValue("date"));
+      // const date = new Date(row.getValue("date"));
+      // It correctly handles both numeric timestamps and date strings:
+      const rawDate = row.getValue("date");
+      if (!rawDate) {
+        return <span className="text-gray-500">No Date</span>;
+      }
+      let date: Date | null = null;
+      // If rawDate is a number, convert it directly.
+      if (typeof rawDate === "number") {
+        date = new Date(rawDate);
+      }
+      // If rawDate is a string, try to detect its format and parse.
+      else if (typeof rawDate === "string") {
+        const detectedFormat = detectDateFormat(rawDate);
+        if (detectedFormat) {
+          date = parse(rawDate, detectedFormat, new Date());
+          if (!isValid(date)) {
+            // If the initial parse is invalid, try the fallback.
+            date = parseDateWithFallback(rawDate);
+          }
+          console.log(
+            `Parsed Date: ${isValid(date) ? date?.toISOString() : "Invalid"} from ${rawDate}`
+          );
+        } else {
+          // Use fallback parsing if format is not detected.
+          date = parseDateWithFallback(rawDate);
+        }
+      }
+      if (!date || !isValid(date)) {
+        console.warn("Invalid date detected:", rawDate);
+        return <span className="text-red-500">Invalid Date</span>;
+      }
+
       return <span>{format(date, "MMM dd, yyyy")}</span>;
     },
   },
