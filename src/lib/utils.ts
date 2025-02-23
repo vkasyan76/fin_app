@@ -8,6 +8,7 @@ import {
   format,
   subDays,
 } from "date-fns";
+import { version } from "os";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -176,36 +177,69 @@ export function fillMissingDays(
 // }
 
 // version 3:
+// export function detectDateFormat(dateString: string): string | null {
+//   if (!dateString || typeof dateString !== "string") {
+//     return null;
+//   }
+
+//   // Regex for slash-based dates that allow 2-digit or 4-digit years
+//   const slashRegex = /^\d{1,2}\/\d{1,2}\/(\d{2}|\d{4})(\s\d{2}:\d{2})?$/;
+//   if (slashRegex.test(dateString)) {
+//     // Split the date to decide if it's dd/MM or MM/dd.
+//     const [firstPart] = dateString.split("/");
+//     const firstNum = parseInt(firstPart, 10);
+//     // If first number > 12, it's likely day-first (European), else month-first (American)
+//     if (firstNum > 12) {
+//       // If time is provided, include it in the format string
+//       return dateString.includes(" ") ? "dd/MM/yy HH:mm" : "dd/MM/yy";
+//     } else {
+//       return dateString.includes(" ") ? "MM/dd/yy HH:mm" : "MM/dd/yy";
+//     }
+//   }
+
+//   // Existing patterns for dot-based formats
+//   if (/^\d{1,2}\.\d{1,2}\.\d{4}(\s\d{2}:\d{2})?$/.test(dateString)) {
+//     console.log(`Detected European format (dots): ${dateString}`);
+//     return "d.M.yyyy HH:mm";
+//   }
+//   if (/^\d{1,2}\.\d{1,2}\.\d{4},\s\d{2}:\d{2}:\d{2}$/.test(dateString)) {
+//     console.log(`Detected European format (dots with time): ${dateString}`);
+//     return "d.M.yyyy, HH:mm:ss";
+//   }
+
+//   console.warn("Unknown date format:", dateString);
+//   return null;
+// }
+
+// version 4:
 export function detectDateFormat(dateString: string): string | null {
   if (!dateString || typeof dateString !== "string") {
     return null;
   }
-
-  // Regex for slash-based dates that allow 2-digit or 4-digit years
-  const slashRegex = /^\d{1,2}\/\d{1,2}\/(\d{2}|\d{4})(\s\d{2}:\d{2})?$/;
-  if (slashRegex.test(dateString)) {
-    // Split the date to decide if it's dd/MM or MM/dd.
-    const [firstPart] = dateString.split("/");
-    const firstNum = parseInt(firstPart, 10);
-    // If first number > 12, it's likely day-first (European), else month-first (American)
-    if (firstNum > 12) {
-      // If time is provided, include it in the format string
-      return dateString.includes(" ") ? "dd/MM/yy HH:mm" : "dd/MM/yy";
+  // Regex for slash-based dates capturing day, month, and year
+  const slashRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})(\s\d{2}:\d{2})?$/;
+  const match = dateString.match(slashRegex);
+  if (match) {
+    const firstToken = parseInt(match[1], 10); // could be day or month
+    const yearPart = match[3];
+    // If the first number is > 12, we assume it's day-first (European)
+    if (firstToken > 12) {
+      return dateString.includes(" ")
+        ? `dd/MM/${yearPart.length === 4 ? "yyyy" : "yy"} HH:mm`
+        : `dd/MM/${yearPart.length === 4 ? "yyyy" : "yy"}`;
     } else {
-      return dateString.includes(" ") ? "MM/dd/yy HH:mm" : "MM/dd/yy";
+      return dateString.includes(" ")
+        ? `MM/dd/${yearPart.length === 4 ? "yyyy" : "yy"} HH:mm`
+        : `MM/dd/${yearPart.length === 4 ? "yyyy" : "yy"}`;
     }
   }
-
-  // Existing patterns for dot-based formats
+  // Dot-based date formats remain unchanged
   if (/^\d{1,2}\.\d{1,2}\.\d{4}(\s\d{2}:\d{2})?$/.test(dateString)) {
-    console.log(`Detected European format (dots): ${dateString}`);
-    return "d.M.yyyy HH:mm";
+    return dateString.includes(" ") ? "d.M.yyyy HH:mm" : "d.M.yyyy";
   }
   if (/^\d{1,2}\.\d{1,2}\.\d{4},\s\d{2}:\d{2}:\d{2}$/.test(dateString)) {
-    console.log(`Detected European format (dots with time): ${dateString}`);
     return "d.M.yyyy, HH:mm:ss";
   }
-
   console.warn("Unknown date format:", dateString);
   return null;
 }
