@@ -11,9 +11,8 @@ import React, { useMemo } from "react";
 
 // CHANGED: Using @ag-grid-community/react, not ag-grid-react
 import { AgGridReact } from "@ag-grid-community/react";
-import { ColDef, ModuleRegistry } from "@ag-grid-community/core";
+import { ColDef, ModuleRegistry, IHeaderParams } from "@ag-grid-community/core";
 import { ClientSideRowModelModule } from "@ag-grid-community/client-side-row-model";
-import { IHeaderParams } from "@ag-grid-community/core";
 
 // CHANGED: Import the standard styles from the new package
 // import "@ag-grid-community/styles/ag-grid.css";
@@ -38,6 +37,7 @@ interface CustomHeaderProps extends IHeaderParams {
   columnIndex: number;
   selectedColumns: Record<string, string | null>;
   onChange: (columnIndex: number, value: string | null) => void;
+  displayName: string; // We'll pass the CSV header text here
 }
 
 /**
@@ -45,14 +45,21 @@ interface CustomHeaderProps extends IHeaderParams {
  * in the header. AG Grid's `headerName` must be a string, so we override
  * with `headerComponentFramework`.
  */
+/** A React component that shows CSV’s column name plus a dropdown. */
 function CustomHeader(props: CustomHeaderProps) {
-  const { columnIndex, selectedColumns, onChange } = props;
+  const { columnIndex, selectedColumns, onChange, displayName } = props;
   return (
-    <TableBulkHeadSelect
-      columnIndex={columnIndex}
-      selectedColumns={selectedColumns}
-      onChange={onChange}
-    />
+    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      {/* 1) Show the CSV's header text */}
+      <span style={{ fontWeight: "bold" }}>{displayName}</span>
+
+      {/* 2) Show your custom "select" for mapping */}
+      <TableBulkHeadSelect
+        columnIndex={columnIndex}
+        selectedColumns={selectedColumns}
+        onChange={onChange}
+      />
+    </div>
   );
 }
 
@@ -72,20 +79,25 @@ export const ImportBulkTable = ({
   // Build column definitions
   const columnDefs = useMemo<ColDef[]>(() => {
     return headers.map((headerText, index) => ({
-      // Use the CSV's first row as the displayed column name
-      headerName: headerText || `Column ${index + 1}`,
-      field: `col_${index}`,
-      sortable: true,
-      filter: true,
-      resizable: true,
+      // headerName: headerText || `Column ${index + 1}`,
+      // field: `col_${index}`,
+      // sortable: true,
+      // filter: true,
+      // resizable: true,
 
-      // Our custom header with the <Select> component
-      headerComponentFramework: CustomHeader,
+      headerName: "", // or use headerText if you want a fallback
+      field: `col_${index}`,
+      // CHANGED: remove AG Grid's default filter & menu if you only want the dropdown
+      filter: false,
+      sortable: false,
+      suppressMenu: true,
+      resizable: true,
+      headerComponent: CustomHeader,
       headerComponentParams: {
         columnIndex: index,
         selectedColumns,
         onChange: onTableHeadSelectChange,
-        displayName: headerText, // pass the CSV header text to the custom header
+        displayName: headerText,
       },
     }));
   }, [headers, selectedColumns, onTableHeadSelectChange]);
@@ -104,9 +116,12 @@ export const ImportBulkTable = ({
   return (
     <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
       <AgGridReact
+        reactUi={true}
+        modules={[ClientSideRowModelModule]}
         rowData={gridRowData}
         columnDefs={columnDefs}
         defaultColDef={{ resizable: true }}
+        popupParent={document.body} // if your dropdown is hidden by z-index
       />
     </div>
   );

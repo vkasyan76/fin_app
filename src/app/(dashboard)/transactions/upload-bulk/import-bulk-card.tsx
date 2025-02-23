@@ -137,6 +137,11 @@ export const ImportBulkCard = ({
       })
       .filter(Boolean) as ImportedTransactionRow[];
 
+    // Debugging:
+    console.log("Debugging in the import bulk card:");
+    console.log("Mapped final arrayOfData:", validArrayOfData);
+    console.log("Formatted data to import:", formattedData);
+
     onSubmit(formattedData);
   };
 

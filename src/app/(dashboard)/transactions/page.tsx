@@ -150,6 +150,9 @@ export default function TransactionsPage() {
     formattedData: ImportedTransactionRow[]
   ) => {
     try {
+      console.log("Debugging in Transactions Page:");
+      console.log("Existing accounts:", existingAccounts);
+      console.log("Existing categories:", existingCategories);
       // 2) Build a name → ID map for accounts
       const accountMap = new Map<string, Id<"accounts">>();
       for (const acct of existingAccounts) {
