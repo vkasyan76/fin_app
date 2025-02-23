@@ -36,10 +36,24 @@ export const UploadBulkButton = ({ onUpload }: UploadBulkButtonProps) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
+        // const workbook = XLSX.read(data, { type: "array" });
+        // CHANGED: pass some extra options so XLSX converts numeric cells to date strings
+        const workbook = XLSX.read(data, {
+          type: "array",
+          cellDates: true, // parse numeric dates into Date objects
+          dateNF: "mm/dd/yyyy HH:mm",
+          // ^ picks the desired output format for date/time (adjust as needed).
+          //   e.g. "dd/MM/yyyy HH:mm:ss" if you want seconds,
+          //   or "MM/dd/yyyy HH:mm" if you prefer US style.
+        });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        // const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        // CHANGED: raw: false => convert date cells to strings using dateNF
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+          raw: false,
+        });
         onUpload(jsonData as RowArray[]);
       };
       reader.readAsArrayBuffer(file);

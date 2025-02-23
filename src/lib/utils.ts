@@ -123,6 +123,54 @@ export function detectDateFormat(dateString: string): string | null {
   return null;
 }
 
+// export function detectDateFormat(dateString: string): string | null {
+//   if (!dateString || typeof dateString !== "string") {
+//     return null;
+//   }
+
+//   // 1) Match slash-based date/time (e.g. "28/01/2025 21:35" or "01/28/2025 21:35")
+//   //    We'll decide if it's dd/MM or MM/dd by checking if the first portion > 12.
+//   // const slashRegex = /^\d{1,2}\/\d{1,2}\/\d{4}(\s\d{2}:\d{2})?$/;
+//   // CHANGED: accept 2-digit or 4-digit year
+//   const slashRegex = /^\d{1,2}\/\d{1,2}\/(\d{2}|\d{4})(\s\d{2}:\d{2})?$/;
+//   if (slashRegex.test(dateString)) {
+//     console.log(`Slash-based date/time detected: ${dateString}`);
+
+//     // Extract the first number (day or month)
+//     // e.g. "28/01/2025 21:35" => part1 = "28", part2 = "01"
+//     const [datePart] = dateString.split(" "); // e.g. "28/01/2025"
+//     const [part1] = datePart.split("/"); // e.g. "28"
+
+//     const firstNum = parseInt(part1, 10);
+//     if (firstNum > 12) {
+//       // If firstNum is > 12, it's definitely a day => dd/MM/yyyy
+//       console.log(`Assuming European (dd/MM/yyyy HH:mm): ${dateString}`);
+//       return "dd/MM/yyyy HH:mm";
+//     } else {
+//       // Otherwise, assume American (MM/dd/yyyy)
+//       console.log(`Assuming American (MM/dd/yyyy HH:mm): ${dateString}`);
+//       return "MM/dd/yyyy HH:mm";
+//     }
+//   }
+
+//   // 2) Match European format (dots), supports single or double digits for day/month
+//   //    e.g. "28.01.2025 21:35" or "1.1.2025 21:35"
+//   if (/^\d{1,2}\.\d{1,2}\.\d{4}(\s\d{2}:\d{2})?$/.test(dateString)) {
+//     console.log(`Detected European format (dots): ${dateString}`);
+//     return "d.M.yyyy HH:mm"; // Works for both "d.M.yyyy" and "dd.MM.yyyy"
+//   }
+
+//   // 3) Match European format with full timestamp (dots + comma + seconds)
+//   //    e.g. "28.01.2025, 21:35:59"
+//   if (/^\d{1,2}\.\d{1,2}\.\d{4},\s\d{2}:\d{2}:\d{2}$/.test(dateString)) {
+//     console.log(`Detected European format (dots with time): ${dateString}`);
+//     return "d.M.yyyy, HH:mm:ss";
+//   }
+
+//   console.warn("Unknown date format:", dateString);
+//   return null;
+// }
+
 /**
  * Attempts to parse the given date string using a list of possible formats.
  * Returns the parsed Date if successful, or null otherwise.

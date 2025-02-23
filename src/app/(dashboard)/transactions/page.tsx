@@ -201,19 +201,37 @@ export default function TransactionsPage() {
           }
 
           // Return the final transaction object
-          return {
-            accountId, // definitely set now
-            categoryId, // possibly undefined
+          // return {
+          //   accountId, // definitely set now
+          //   categoryId, // possibly undefined
+          //   amount: item.amount,
+          //   payee: item.payee,
+          //   notes: item.notes,
+          //   date: item.date,
+          // };
+          // Return final transaction
+          const finalTx = {
+            accountId,
+            categoryId,
             amount: item.amount,
             payee: item.payee,
             notes: item.notes,
             date: item.date,
           };
+          console.log("Final transaction =>", finalTx);
+          return finalTx;
         })
       );
 
+      console.log("All processed transactions =>", processedData);
+
       // 5) Insert them all at once
-      await CreateTransactions({ transactions: processedData });
+      // await CreateTransactions({ transactions: processedData });
+      // Now call the bulkCreate
+      const insertedIds = await CreateTransactions({
+        transactions: processedData,
+      });
+      console.log("Inserted IDs =>", insertedIds);
       toast.success("Bulk transactions imported successfully!");
       setVariant(VARIANTS.LIST);
     } catch (error) {
