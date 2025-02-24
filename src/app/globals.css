@@ -86,3 +86,10 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* AgGridReact styling to have more space for the header row - not needed */
+
+/* .ag-theme-alpine .ag-header-cell-label {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+} */

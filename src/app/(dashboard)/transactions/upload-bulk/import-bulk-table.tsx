@@ -49,7 +49,15 @@ interface CustomHeaderProps extends IHeaderParams {
 function CustomHeader(props: CustomHeaderProps) {
   const { columnIndex, selectedColumns, onChange, displayName } = props;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        // paddingTop: "8px", // <--- Add top padding
+        // paddingBottom: "8px", // <--- Optionally add bottom padding
+      }}
+    >
       {/* 1) Show the CSV's header text */}
       <span style={{ fontWeight: "bold" }}>{displayName}</span>
 
@@ -116,12 +124,15 @@ export const ImportBulkTable = ({
   return (
     <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
       <AgGridReact
-        reactUi={true}
+        // reactUi={true}
         modules={[ClientSideRowModelModule]}
         rowData={gridRowData}
         columnDefs={columnDefs}
         defaultColDef={{ resizable: true }}
         popupParent={document.body} // if your dropdown is hidden by z-index
+        gridOptions={{
+          headerHeight: 80,
+        }}
       />
     </div>
   );
