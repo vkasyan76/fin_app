@@ -7,6 +7,8 @@ import { Chart } from "./chart";
 export const DataCharts = () => {
   const data = useQuery(api.summary.getSummary, {}); // Provide an empty object for optional parameters
 
+  console.log("data.days", data?.days); // Log data.days to console
+
   if (!data) {
     return <div>Loading...</div>; // Handle loading state properly
   }
