@@ -31,6 +31,24 @@ export const getSummary = query({
     const lastPeriodStart = subDays(startDate, periodLength);
     const lastPeriodEnd = subDays(endDate, periodLength);
 
+    // Debugging
+    // console.log("Date Range:", startDate, endDate);
+
+    // // Fetch Transactions
+    // const transactions_raw = await ctx.db
+    //   .query("transactions")
+    //   .filter((q) =>
+    //     q.and(
+    //       q.eq(q.field("userId"), userId),
+    //       accountId ? q.eq(q.field("accountId"), accountId) : true,
+    //       q.gte(q.field("date"), startDate.getTime()),
+    //       q.lte(q.field("date"), endDate.getTime())
+    //     )
+    //   )
+    //   .collect();
+
+    // console.log("Raw Transactions:", transactions_raw);
+
     // Helper function to fetch financial data for a given period
     async function fetchFinancialData(start: Date, end: Date) {
       const transactions = await ctx.db
@@ -44,6 +62,8 @@ export const getSummary = query({
           )
         )
         .collect();
+
+      console.log("fetchFinancialDat", fetchFinancialData);
 
       const income = transactions
         .filter((tx) => tx.amount > 0)
@@ -86,11 +106,15 @@ export const getSummary = query({
       )
       .collect();
 
+    // console.log("categorySpending (raw):", categorySpending);
+
     const categoryTotals: Record<string, number> = {};
     for (const tx of categorySpending) {
       if (!tx.categoryId) continue;
       categoryTotals[tx.categoryId] =
         (categoryTotals[tx.categoryId] || 0) + Math.abs(tx.amount);
+
+      // console.log("categoryTotals:", categoryTotals);
     }
 
     const categoryIds = Object.keys(categoryTotals);
@@ -102,6 +126,12 @@ export const getSummary = query({
           : null;
       })
     );
+
+    // Debugging:
+    console.log("categoryDocs", categoryDocs);
+    // console.log("Fetching category for ID:", categoryIds);
+    // const testCategory = await ctx.db.get(categoryIds[0] as Id<"categories">);
+    // console.log("Test category result:", testCategory);
 
     const validCategories = categoryDocs.filter(Boolean) as {
       id: string;
