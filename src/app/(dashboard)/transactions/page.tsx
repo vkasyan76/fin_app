@@ -46,6 +46,22 @@ type RowArray = RowCell[];
 export default function TransactionsPage() {
   const params = useSearchParams();
   const accountId = (params.get("accountId") as Id<"accounts">) || undefined; // Get accountId from URL
+  // Ensure accountId is in the correct format for Convex
+  // const rawAccountId = (params.get("accountId") as Id<"accounts">) || undefined; // Get accountId from URL
+  // const accountId =
+  //   rawAccountId !== "all" ? (rawAccountId as Id<"accounts">) : undefined;
+
+  const from = params.get("from")
+    ? new Date(params.get("from")!).getTime()
+    : undefined;
+  const to = params.get("to")
+    ? new Date(params.get("to")!).getTime()
+    : undefined;
+
+  // const rawFrom = params.get("from") || "";
+  // const rawTo = params.get("to") || "";
+  // const from = rawFrom ? new Date(rawFrom).getTime() : undefined;
+  // const to = rawTo ? new Date(rawTo).getTime() : undefined;
 
   // Account Select Dialog for Bulk Upload
   const [AccountDialog, confirm] = useSelectAccount();
@@ -55,6 +71,8 @@ export default function TransactionsPage() {
   // accountId filter
   const transactions = useQuery(api.transactions.get, {
     accountId,
+    from: from ? new Date(from).getTime() : undefined,
+    to: to ? new Date(to).getTime() : undefined,
   });
   // Set up the delete mutation.
   const deleteTransactions = useMutation(api.transactions.remove);
