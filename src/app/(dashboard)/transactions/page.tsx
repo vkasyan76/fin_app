@@ -21,6 +21,7 @@ import {
   ImportBulkCard,
   ImportedTransactionRow,
 } from "./upload-bulk/import-bulk-card";
+import { useSearchParams } from "next/navigation";
 
 // Enum for handling different views (list or import mode)
 enum VARIANTS {
@@ -43,11 +44,18 @@ type RowCell = string | number | null | undefined;
 type RowArray = RowCell[];
 
 export default function TransactionsPage() {
+  const params = useSearchParams();
+  const accountId = (params.get("accountId") as Id<"accounts">) || undefined; // Get accountId from URL
+
   // Account Select Dialog for Bulk Upload
   const [AccountDialog, confirm] = useSelectAccount();
 
   // Call the transactions get query (fetching all transactions, no account filter).
-  const transactions = useQuery(api.transactions.get, { accountId: undefined });
+  // const transactions = useQuery(api.transactions.get, { accountId: undefined });
+  // accountId filter
+  const transactions = useQuery(api.transactions.get, {
+    accountId,
+  });
   // Set up the delete mutation.
   const deleteTransactions = useMutation(api.transactions.remove);
   // console.log("Transactions:", transactions);
