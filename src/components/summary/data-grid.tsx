@@ -3,6 +3,7 @@
 import { FaPiggyBank, FaArrowTrendUp, FaArrowTrendDown } from "react-icons/fa6";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react"; // Use Convex query hook
+import { Id } from "../../../convex/_generated/dataModel";
 import { api } from "../../../convex/_generated/api";
 import { formatDateRange } from "@/lib/utils";
 import { DataCard, DataCardLoading } from "@/components/summary/data-card";
@@ -11,10 +12,11 @@ export const DataGrid = () => {
   const params = useSearchParams();
   const to = params.get("to") || undefined;
   const from = params.get("from") || undefined;
+  const accountId = (params.get("accountId") as Id<"accounts">) || undefined;
 
   // Fetch summary data using Convex API
 
-  const data = useQuery(api.summary.getSummary, { from, to });
+  const data = useQuery(api.summary.getSummary, { from, to, accountId });
 
   // isLoading = true if data is undefined
   const isLoading = data === undefined;

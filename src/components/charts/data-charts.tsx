@@ -2,11 +2,17 @@
 
 import { useQuery } from "convex/react"; // Use Convex query hook
 import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 import { Chart, ChartLoading } from "./chart";
 import { SpendingPie, SpendingPieLoading } from "./spending-pie";
+import { useSearchParams } from "next/navigation";
 
 export const DataCharts = () => {
-  const data = useQuery(api.summary.getSummary, {}); // Provide an empty object for optional parameters
+  const params = useSearchParams();
+  const to = params.get("to") || undefined;
+  const from = params.get("from") || undefined;
+  const accountId = (params.get("accountId") as Id<"accounts">) || undefined;
+  const data = useQuery(api.summary.getSummary, { from, to, accountId }); // Provide an empty object for optional parameters
 
   // console.log("data.days", data?.days); // Log data.days to console
   // console.log("data.categories", data?.categories); // Log data.categories to console
