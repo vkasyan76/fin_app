@@ -16,7 +16,7 @@ export default function SummaryPage() {
 
   // Fetch financial summary using the Convex query
   const response = useQuery(api.summary.getSummary, { accountId, from, to });
-  const data = response?.data; // Extracting the 'data' field
+  const data = response; // Convex directly returns the structured data without a data wrapper.
 
   useEffect(() => {
     if (data?.days) {
